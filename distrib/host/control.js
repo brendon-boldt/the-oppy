@@ -43,10 +43,6 @@ var TSOS;
             // Check for our testing and enrichment core, which
             // may be referenced here (from index.html) as function Glados().
             if (typeof Glados === "function") {
-                // function Glados() is here, so instantiate Her into
-                // the global (and properly capitalized) _GLaDOS variable.
-                _GLaDOS = new Glados();
-                _GLaDOS.init();
             }
         };
         Control.hostLog = function (msg, source) {
@@ -99,6 +95,6 @@ var TSOS;
             // page from its cache, which is not what we want.
         };
         return Control;
-    })();
+    }());
     TSOS.Control = Control;
 })(TSOS || (TSOS = {}));

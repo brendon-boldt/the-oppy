@@ -9,6 +9,6 @@ var TSOS;
             this.params = params;
         }
         return Interrupt;
-    })();
+    }());
     TSOS.Interrupt = Interrupt;
 })(TSOS || (TSOS = {}));

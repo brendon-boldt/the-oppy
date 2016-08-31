@@ -158,6 +158,6 @@ var TSOS;
             this.krnShutdown();
         };
         return Kernel;
-    })();
+    }());
     TSOS.Kernel = Kernel;
 })(TSOS || (TSOS = {}));

@@ -9,6 +9,6 @@ var TSOS;
             this.description = description;
         }
         return ShellCommand;
-    })();
+    }());
     TSOS.ShellCommand = ShellCommand;
 })(TSOS || (TSOS = {}));

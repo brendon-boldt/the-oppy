@@ -8,6 +8,6 @@ var TSOS;
             this.args = args;
         }
         return UserCommand;
-    })();
+    }());
     TSOS.UserCommand = UserCommand;
 })(TSOS || (TSOS = {}));

@@ -56,6 +56,6 @@ var TSOS;
             }
         };
         return Devices;
-    })();
+    }());
     TSOS.Devices = Devices;
 })(TSOS || (TSOS = {}));

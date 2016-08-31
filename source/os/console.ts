@@ -45,6 +45,9 @@ module TSOS {
                     _OsShell.handleInput(this.buffer);
                     // ... and reset our buffer.
                     this.buffer = "";
+                } else if (chr === String.fromCharCode(8)) {
+                    this.backspaceText();
+                    this.buffer = this.buffer.substring(0, this.buffer.length-1);
                 } else {
                     // This is a "normal" character, so ...
                     // ... draw it on the screen...
@@ -54,6 +57,16 @@ module TSOS {
                 }
                 // TODO: Write a case for Ctrl-C.
             }
+        }
+
+        public backspaceText(): void {
+            let text: string = this.buffer.charAt(this.buffer.length - 1);
+            console.log(this.currentFontSize);
+            let xOffset: number = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
+            this.currentXPosition = this.currentXPosition - xOffset;
+            // Bounds checking here
+            _DrawingContext.clearRect(this.currentXPosition, this.currentYPosition - _DefaultFontSize,
+                this.currentXPosition + xOffset, this.currentYPosition + _DrawingContext.fontDescent(this.currentFont, this.currentFontSize));
         }
 
         public putText(text): void {

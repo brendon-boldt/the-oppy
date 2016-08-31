@@ -44,6 +44,6 @@ var TSOS;
             // Do the real work here. Be sure to set this.isExecuting appropriately.
         };
         return Cpu;
-    })();
+    }());
     TSOS.Cpu = Cpu;
 })(TSOS || (TSOS = {}));

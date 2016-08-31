@@ -45,6 +45,10 @@ var TSOS;
                     // ... and reset our buffer.
                     this.buffer = "";
                 }
+                else if (chr === String.fromCharCode(8)) {
+                    this.backspaceText();
+                    this.buffer = this.buffer.substring(0, this.buffer.length - 1);
+                }
                 else {
                     // This is a "normal" character, so ...
                     // ... draw it on the screen...
@@ -53,6 +57,14 @@ var TSOS;
                     this.buffer += chr;
                 }
             }
+        };
+        Console.prototype.backspaceText = function () {
+            var text = this.buffer.charAt(this.buffer.length - 1);
+            console.log(this.currentFontSize);
+            var xOffset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
+            this.currentXPosition = this.currentXPosition - xOffset;
+            // Bounds checking here
+            _DrawingContext.clearRect(this.currentXPosition, this.currentYPosition - _DefaultFontSize, this.currentXPosition + xOffset, this.currentYPosition + _DrawingContext.fontDescent(this.currentFont, this.currentFontSize));
         };
         Console.prototype.putText = function (text) {
             // My first inclination here was to write two functions: putChar() and putString().
@@ -84,6 +96,6 @@ var TSOS;
             // TODO: Handle scrolling. (iProject 1)
         };
         return Console;
-    })();
+    }());
     TSOS.Console = Console;
 })(TSOS || (TSOS = {}));

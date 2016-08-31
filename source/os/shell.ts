@@ -28,7 +28,7 @@ module TSOS {
 
         public init() {
             var sc;
-            //
+
             // Load the command list.
 
             // ver

@@ -23,7 +23,6 @@ var TSOS;
         }
         Shell.prototype.init = function () {
             var sc;
-            //
             // Load the command list.
             // ver
             sc = new TSOS.ShellCommand(this.shellVer, "ver", "- Displays the current version data.");
@@ -247,6 +246,6 @@ var TSOS;
             }
         };
         return Shell;
-    })();
+    }());
     TSOS.Shell = Shell;
 })(TSOS || (TSOS = {}));

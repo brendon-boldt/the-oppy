@@ -38,6 +38,6 @@ var TSOS;
             return retVal;
         };
         return Queue;
-    })();
+    }());
     TSOS.Queue = Queue;
 })(TSOS || (TSOS = {}));
