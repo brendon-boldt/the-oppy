@@ -17,9 +17,10 @@ module TSOS {
                     public currentFontSize = _DefaultFontSize,
                     public currentXPosition = 0,
                     public currentYPosition = _DefaultFontSize,
+                    public commandHistory: string[] = [],
                     public consoleBuffer = "",
                     public inputBuffer = "",
-                    private commandIndex = 0) {
+                    private commandIndex = -1) {
         }
 
         public init(): void {
@@ -37,53 +38,76 @@ module TSOS {
             this.currentYPosition = this.currentFontSize;
         }
 
+        // Only clears the canvas; not the actual buffer
+        public clearUserInput(): void {
+            let tempBuffer: string = this.inputBuffer;
+            while (this.inputBuffer.length > 0) {
+                this.backspaceText();
+                this.inputBuffer = this.inputBuffer
+                    .substring(0, this.inputBuffer.length-1);
+            }
+            this.inputBuffer = tempBuffer;
+        }
+
         private tabComplete(str: string): string {
             console.log("str: " + str);
             let cl = _OsShell.commandList;
             for (let i = 0; i < cl.length; i++) {
-                let index: number = (this.commandIndex + i) % cl.length;
+                //let index: number = (this.commandIndex + i) % cl.length;
+                let index: number = i % cl.length;
                 if (cl[index].command.indexOf(str) === 0) {
                     str = cl[index].command;
-                    this.commandIndex = (index + 1) % cl.length;
+                    //this.commandIndex = (index + 1) % cl.length;
                     break;
                }
             }
-            //console.log("tc: " + str);
             return str;
+        }
+
+        private getHistoricCommand(): string {
+            if (this.commandHistory.length == 0)
+                return "";
+            if (this.commandIndex == -2) {
+                this.commandIndex = this.commandHistory.length -1;
+            } else if (this.commandIndex == -1) {
+                this.commandIndex = 0;
+            } else if (this.commandIndex >= this.commandHistory.length) {
+                this.commandIndex = this.commandHistory.length;
+                return "";
+            }
+            return this.commandHistory[this.commandIndex];
         }
 
         public handleInput(): void {
             while (_KernelInputQueue.getSize() > 0) {
-                // Get the next character from the kernel input queue.
                 var chr = _KernelInputQueue.dequeue();
-                // Check to see if it's "special" (enter or ctrl-c) or "normal" (anything else that the keyboard device driver gave us).
-                if (chr === String.fromCharCode(13)) { //     Enter key
-                    // The enter key marks the end of a console command, so ...
-                    // ... tell the shell ...
+                if (chr === String.fromCharCode(13)) { // Enter
                     _OsShell.handleInput(this.inputBuffer);
-                    // ... and reset our buffer.
+                    this.commandHistory.push(this.inputBuffer);
+                    this.commandIndex = -1;
                     this.inputBuffer = "";
-                } else if (chr === String.fromCharCode(8)) {
+                } else if (chr === String.fromCharCode(8)) { // Backspace
                     this.backspaceText();
                     this.inputBuffer = this.inputBuffer.substring(0, this.inputBuffer.length-1);
-                } else if (chr === String.fromCharCode(9)) {
-                    // Add backspace
-
+                } else if (chr === String.fromCharCode(9)) { // Tab
                     let tempBuffer: string = this.inputBuffer;
-                    while (this.inputBuffer.length > 0) {
-                        this.backspaceText();
-                        this.inputBuffer = this.inputBuffer.substring(0, this.inputBuffer.length-1);
-                    }
+                    // Erase the text of the user input and redraw it
+                    // with the tab completed command.
+                    this.clearUserInput();
                     this.inputBuffer = this.tabComplete(tempBuffer);
                     this.putText(this.inputBuffer);
-                    this.commandIndex = 0;
-                    //for (let i = 0; i < this.inputBuffer.length; i++)
-                    //    this.put();
+                } else if (chr === String.fromCharCode(38)) { // Up arrow
+                    this.commandIndex -= 1;
+                    this.clearUserInput();
+                    this.inputBuffer = this.getHistoricCommand();
+                    this.putText(this.inputBuffer);
+                } else if (chr === String.fromCharCode(40)) { // Down arrow
+                    this.commandIndex += 1;
+                    this.clearUserInput();
+                    this.inputBuffer = this.getHistoricCommand();
+                    this.putText(this.inputBuffer);
                 } else {
-                    // This is a "normal" character, so ...
-                    // ... draw it on the screen...
                     this.putText(chr);
-                    // ... and add it to our buffer.
                     this.inputBuffer += chr;
                 }
                 // TODO: Write a case for Ctrl-C.
@@ -102,26 +126,80 @@ module TSOS {
                 .substring(0, this.consoleBuffer.length - 1);
         }
 
-        public putText(text): void {
-            // My first inclination here was to write two functions: putChar() and putString().
-            // Then I remembered that JavaScript is (sadly) untyped and it won't differentiate
-            // between the two.  So rather than be like PHP and write two (or more) functions that
-            // do the same thing, thereby encouraging confusion and decreasing readability, I
-            // decided to write one function and use the term "text" to connote string or char.
-            //
-            // UPDATE: Even though we are now working in TypeScript, char and string remain undistinguished.
-            //         Consider fixing that.
+        public putText(text: string): void {
             if (text == "\n") {
                 this.advanceLine();
             } else if (text !== "") {
                 // Draw the text at the current X and Y coordinates.
-                _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
+                var offset = _DrawingContext.measureText(
+                    this.currentFont,
+                    this.currentFontSize,
+                    text);
+                if (offset + this.currentXPosition > _DisplayXRes) {
+                    if (text.length == 1) {
+                        this.advanceLine();
+                        this.putText(text);
+                    } else {
+                        let lines = this.lineWrapText(text);
+                        for (let i = 0; i < lines.length; i++) {
+                            this.putText(lines[i]);
+                            this.advanceLine();
+                        }
+                    }
+                } else {
+                    _DrawingContext.drawText(
+                        this.currentFont,
+                        this.currentFontSize,
+                        this.currentXPosition,
+                        this.currentYPosition,
+                        text);
+                    this.currentXPosition = this.currentXPosition + offset;
+                    this.consoleBuffer += text;
+                }
                 // Move the current X position.
-                var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
-                this.currentXPosition = this.currentXPosition + offset;
             }
-            this.consoleBuffer += text;
-         }
+        }
+
+        // To handle line breaking
+        private lineWrapText(text: string): string[] {
+            if (this.currentXPosition > _DisplayXRes) {
+                //this.advanceLine();
+                //return [text];
+            }
+
+            let localX: number = this.currentXPosition;
+
+            let lines: string[] = [];
+            let i: number = 0;
+            let line: string = text;
+            //console.log("line: " + line);
+            while (i < line.length) {
+                var offset = _DrawingContext.measureText(
+                    this.currentFont,
+                    this.currentFontSize,
+                    line.slice(0,i));
+                //console.log(line.slice(0,i));
+                //console.log(offset);
+                if (localX + offset > _DisplayXRes) {
+                    lines.push(line.slice(0,i-1));
+                    //console.log("i: " + i);
+                    //console.log("line0: " + line);
+                    line = line.slice(i-1);
+                    //console.log("line1: " + line);
+                    localX = 0;
+                    i = 0;
+                }
+                i++;
+            }
+            lines.push(line);
+            if (lines[0] === text) {
+                lines.push(lines[0]);
+                lines[0] = "";
+            }
+            //console.log(lines);
+            return lines;//.join('\n');
+        }
+        
 
         public advanceLine(): void {
             this.currentXPosition = 0;
@@ -139,7 +217,8 @@ module TSOS {
             //_DrawingContext.rect(0,0,500,500);
             //_DrawingContext.translate(10, 10);
 
-            if (this.currentYPosition > (<any> document.getElementById('display')).height) {
+            if (this.currentYPosition > _DisplayYRes) {
+            //if (this.currentYPosition > (<any> document.getElementById('display')).height) {
                 let tempBuffer: string = this.consoleBuffer.substring(this.consoleBuffer.indexOf("\n") + 1);
                 this.clearScreen();
                 this.resetXY();

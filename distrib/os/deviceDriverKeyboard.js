@@ -52,6 +52,8 @@ var TSOS;
             }
             else if (((keyCode >= 48) && (keyCode <= 57)) ||
                 (keyCode == 32) ||
+                (keyCode == 38) ||
+                (keyCode == 40) ||
                 (keyCode == 9) ||
                 (keyCode == 8) ||
                 (keyCode == 13)) {

@@ -10,18 +10,20 @@
 var TSOS;
 (function (TSOS) {
     var Console = (function () {
-        function Console(currentFont, currentFontSize, currentXPosition, currentYPosition, consoleBuffer, inputBuffer, commandIndex) {
+        function Console(currentFont, currentFontSize, currentXPosition, currentYPosition, commandHistory, consoleBuffer, inputBuffer, commandIndex) {
             if (currentFont === void 0) { currentFont = _DefaultFontFamily; }
             if (currentFontSize === void 0) { currentFontSize = _DefaultFontSize; }
             if (currentXPosition === void 0) { currentXPosition = 0; }
             if (currentYPosition === void 0) { currentYPosition = _DefaultFontSize; }
+            if (commandHistory === void 0) { commandHistory = []; }
             if (consoleBuffer === void 0) { consoleBuffer = ""; }
             if (inputBuffer === void 0) { inputBuffer = ""; }
-            if (commandIndex === void 0) { commandIndex = 0; }
+            if (commandIndex === void 0) { commandIndex = -1; }
             this.currentFont = currentFont;
             this.currentFontSize = currentFontSize;
             this.currentXPosition = currentXPosition;
             this.currentYPosition = currentYPosition;
+            this.commandHistory = commandHistory;
             this.consoleBuffer = consoleBuffer;
             this.inputBuffer = inputBuffer;
             this.commandIndex = commandIndex;
@@ -38,30 +40,52 @@ var TSOS;
             this.currentXPosition = 0;
             this.currentYPosition = this.currentFontSize;
         };
+        // Only clears the canvas; not the actual buffer
+        Console.prototype.clearUserInput = function () {
+            var tempBuffer = this.inputBuffer;
+            while (this.inputBuffer.length > 0) {
+                this.backspaceText();
+                this.inputBuffer = this.inputBuffer
+                    .substring(0, this.inputBuffer.length - 1);
+            }
+            this.inputBuffer = tempBuffer;
+        };
         Console.prototype.tabComplete = function (str) {
             console.log("str: " + str);
             var cl = _OsShell.commandList;
             for (var i = 0; i < cl.length; i++) {
-                var index = (this.commandIndex + i) % cl.length;
+                //let index: number = (this.commandIndex + i) % cl.length;
+                var index = i % cl.length;
                 if (cl[index].command.indexOf(str) === 0) {
                     str = cl[index].command;
-                    this.commandIndex = (index + 1) % cl.length;
+                    //this.commandIndex = (index + 1) % cl.length;
                     break;
                 }
             }
-            //console.log("tc: " + str);
             return str;
+        };
+        Console.prototype.getHistoricCommand = function () {
+            if (this.commandHistory.length == 0)
+                return "";
+            if (this.commandIndex == -2) {
+                this.commandIndex = this.commandHistory.length - 1;
+            }
+            else if (this.commandIndex == -1) {
+                this.commandIndex = 0;
+            }
+            else if (this.commandIndex >= this.commandHistory.length) {
+                this.commandIndex = this.commandHistory.length;
+                return "";
+            }
+            return this.commandHistory[this.commandIndex];
         };
         Console.prototype.handleInput = function () {
             while (_KernelInputQueue.getSize() > 0) {
-                // Get the next character from the kernel input queue.
                 var chr = _KernelInputQueue.dequeue();
-                // Check to see if it's "special" (enter or ctrl-c) or "normal" (anything else that the keyboard device driver gave us).
                 if (chr === String.fromCharCode(13)) {
-                    // The enter key marks the end of a console command, so ...
-                    // ... tell the shell ...
                     _OsShell.handleInput(this.inputBuffer);
-                    // ... and reset our buffer.
+                    this.commandHistory.push(this.inputBuffer);
+                    this.commandIndex = -1;
                     this.inputBuffer = "";
                 }
                 else if (chr === String.fromCharCode(8)) {
@@ -69,21 +93,27 @@ var TSOS;
                     this.inputBuffer = this.inputBuffer.substring(0, this.inputBuffer.length - 1);
                 }
                 else if (chr === String.fromCharCode(9)) {
-                    // Add backspace
                     var tempBuffer = this.inputBuffer;
-                    while (this.inputBuffer.length > 0) {
-                        this.backspaceText();
-                        this.inputBuffer = this.inputBuffer.substring(0, this.inputBuffer.length - 1);
-                    }
+                    // Erase the text of the user input and redraw it
+                    // with the tab completed command.
+                    this.clearUserInput();
                     this.inputBuffer = this.tabComplete(tempBuffer);
                     this.putText(this.inputBuffer);
-                    this.commandIndex = 0;
+                }
+                else if (chr === String.fromCharCode(38)) {
+                    this.commandIndex -= 1;
+                    this.clearUserInput();
+                    this.inputBuffer = this.getHistoricCommand();
+                    this.putText(this.inputBuffer);
+                }
+                else if (chr === String.fromCharCode(40)) {
+                    this.commandIndex += 1;
+                    this.clearUserInput();
+                    this.inputBuffer = this.getHistoricCommand();
+                    this.putText(this.inputBuffer);
                 }
                 else {
-                    // This is a "normal" character, so ...
-                    // ... draw it on the screen...
                     this.putText(chr);
-                    // ... and add it to our buffer.
                     this.inputBuffer += chr;
                 }
             }
@@ -98,25 +128,63 @@ var TSOS;
                 .substring(0, this.consoleBuffer.length - 1);
         };
         Console.prototype.putText = function (text) {
-            // My first inclination here was to write two functions: putChar() and putString().
-            // Then I remembered that JavaScript is (sadly) untyped and it won't differentiate
-            // between the two.  So rather than be like PHP and write two (or more) functions that
-            // do the same thing, thereby encouraging confusion and decreasing readability, I
-            // decided to write one function and use the term "text" to connote string or char.
-            //
-            // UPDATE: Even though we are now working in TypeScript, char and string remain undistinguished.
-            //         Consider fixing that.
             if (text == "\n") {
                 this.advanceLine();
             }
             else if (text !== "") {
                 // Draw the text at the current X and Y coordinates.
-                _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
-                // Move the current X position.
                 var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
-                this.currentXPosition = this.currentXPosition + offset;
+                if (offset + this.currentXPosition > _DisplayXRes) {
+                    if (text.length == 1) {
+                        this.advanceLine();
+                        this.putText(text);
+                    }
+                    else {
+                        var lines = this.lineWrapText(text);
+                        for (var i = 0; i < lines.length; i++) {
+                            this.putText(lines[i]);
+                            this.advanceLine();
+                        }
+                    }
+                }
+                else {
+                    _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
+                    this.currentXPosition = this.currentXPosition + offset;
+                    this.consoleBuffer += text;
+                }
             }
-            this.consoleBuffer += text;
+        };
+        // To handle line breaking
+        Console.prototype.lineWrapText = function (text) {
+            if (this.currentXPosition > _DisplayXRes) {
+            }
+            var localX = this.currentXPosition;
+            var lines = [];
+            var i = 0;
+            var line = text;
+            //console.log("line: " + line);
+            while (i < line.length) {
+                var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, line.slice(0, i));
+                //console.log(line.slice(0,i));
+                //console.log(offset);
+                if (localX + offset > _DisplayXRes) {
+                    lines.push(line.slice(0, i - 1));
+                    //console.log("i: " + i);
+                    //console.log("line0: " + line);
+                    line = line.slice(i - 1);
+                    //console.log("line1: " + line);
+                    localX = 0;
+                    i = 0;
+                }
+                i++;
+            }
+            lines.push(line);
+            if (lines[0] === text) {
+                lines.push(lines[0]);
+                lines[0] = "";
+            }
+            //console.log(lines);
+            return lines; //.join('\n');
         };
         Console.prototype.advanceLine = function () {
             this.currentXPosition = 0;
@@ -132,7 +200,8 @@ var TSOS;
             // TODO: Handle scrolling. (iProject 1)
             //_DrawingContext.rect(0,0,500,500);
             //_DrawingContext.translate(10, 10);
-            if (this.currentYPosition > document.getElementById('display').height) {
+            if (this.currentYPosition > _DisplayYRes) {
+                //if (this.currentYPosition > (<any> document.getElementById('display')).height) {
                 var tempBuffer = this.consoleBuffer.substring(this.consoleBuffer.indexOf("\n") + 1);
                 this.clearScreen();
                 this.resetXY();

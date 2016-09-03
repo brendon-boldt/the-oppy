@@ -37,6 +37,9 @@ var _DefaultFontFamily: string = "sans";        // Ignored, I think. The was jus
 var _DefaultFontSize: number = 13;
 var _FontHeightMargin: number = 4;              // Additional space added to font size when advancing a line.
 
+var _DisplayXRes: number;
+var _DisplayYRes: number;
+
 var _Trace: boolean = true;  // Default the OS trace to be on.
 
 // The OS Kernel and its queues.
@@ -67,4 +70,6 @@ var _GLaDOS: any = null; // If the above is linked in, this is the instantiated 
 
 var onDocumentLoad = function() {
 	TSOS.Control.hostInit();
+  _DisplayXRes = (<any> document.getElementById('display')).width;
+  _DisplayYRes = (<any> document.getElementById('display')).height;
 };
