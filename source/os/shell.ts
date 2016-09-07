@@ -30,6 +30,15 @@ module TSOS {
             var sc;
 
             // Load the command list.
+            sc = new ShellCommand(this.shellDate,
+                                  "date",
+                                  "- Prints the current date.");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellEcho,
+                                  "echo",
+                                  "- Echoes the given <strings>.");
+            this.commandList[this.commandList.length] = sc;
 
             // ver
             sc = new ShellCommand(this.shellVer,
@@ -177,6 +186,23 @@ module TSOS {
         // Shell Command Functions.  Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
+
+        public shellDate(): void {
+            let d = new Date();
+            let month: number = d.getMonth();
+            let day: number = d.getDay();
+            let str: string =
+                d.getFullYear() + '-' +
+                (month < 10 ? '0' :'') + month + '-' +
+                (day < 10 ? '0' :'') + day;
+            _StdOut.putText(str);
+        }
+
+        public shellEcho(args: string[]): void {
+            _StdOut.putText(args.join(' '));
+            //_StdOut.advanceLine();
+        }
+
         public shellInvalidCommand() {
             _StdOut.putText("Invalid Command. ");
             if (_SarcasticMode) {

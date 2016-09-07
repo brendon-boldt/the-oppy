@@ -24,6 +24,10 @@ var TSOS;
         Shell.prototype.init = function () {
             var sc;
             // Load the command list.
+            sc = new TSOS.ShellCommand(this.shellDate, "date", "- Prints the current date.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellEcho, "echo", "- Echoes the given <strings>.");
+            this.commandList[this.commandList.length] = sc;
             // ver
             sc = new TSOS.ShellCommand(this.shellVer, "ver", "- Displays the current version data.");
             this.commandList[this.commandList.length] = sc;
@@ -139,6 +143,19 @@ var TSOS;
         // Shell Command Functions.  Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
+        Shell.prototype.shellDate = function () {
+            var d = new Date();
+            var month = d.getMonth();
+            var day = d.getDay();
+            var str = d.getFullYear() + '-' +
+                (month < 10 ? '0' : '') + month + '-' +
+                (day < 10 ? '0' : '') + day;
+            _StdOut.putText(str);
+        };
+        Shell.prototype.shellEcho = function (args) {
+            _StdOut.putText(args.join(' '));
+            //_StdOut.advanceLine();
+        };
         Shell.prototype.shellInvalidCommand = function () {
             _StdOut.putText("Invalid Command. ");
             if (_SarcasticMode) {

@@ -27,6 +27,9 @@ var TSOS;
             this.consoleBuffer = consoleBuffer;
             this.inputBuffer = inputBuffer;
             this.commandIndex = commandIndex;
+            this.lineSize = _DefaultFontSize
+                + _DrawingContext.fontDescent(this.currentFont, this.currentFontSize)
+                + _FontHeightMargin;
         }
         Console.prototype.init = function () {
             this.clearScreen();
@@ -51,7 +54,7 @@ var TSOS;
             this.inputBuffer = tempBuffer;
         };
         Console.prototype.tabComplete = function (str) {
-            console.log("str: " + str);
+            //console.log("str: " + str);
             var cl = _OsShell.commandList;
             for (var i = 0; i < cl.length; i++) {
                 //let index: number = (this.commandIndex + i) % cl.length;
@@ -122,10 +125,20 @@ var TSOS;
             var text = this.inputBuffer.charAt(this.inputBuffer.length - 1);
             var xOffset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
             this.currentXPosition = this.currentXPosition - xOffset;
+            if (this.currentXPosition < 0) {
+                this.currentYPosition -= this.lineSize;
+                var lines = this.consoleBuffer.split("\n");
+                var length_1 = _DrawingContext.measureText(this.currentFont, this.currentFontSize, lines[lines.length - 2]) - xOffset;
+                this.currentXPosition = length_1;
+            }
             // Bounds checking here
             _DrawingContext.clearRect(this.currentXPosition, this.currentYPosition - _DefaultFontSize, this.currentXPosition + xOffset, this.currentYPosition + _DrawingContext.fontDescent(this.currentFont, this.currentFontSize));
-            this.consoleBuffer = this.consoleBuffer
-                .substring(0, this.consoleBuffer.length - 1);
+            if (this.consoleBuffer[this.consoleBuffer.length - 1] == '\n')
+                this.consoleBuffer = this.consoleBuffer
+                    .substring(0, this.consoleBuffer.length - 2);
+            else
+                this.consoleBuffer = this.consoleBuffer
+                    .substring(0, this.consoleBuffer.length - 1);
         };
         Console.prototype.putText = function (text) {
             if (text == "\n") {
@@ -142,8 +155,11 @@ var TSOS;
                     else {
                         var lines = this.lineWrapText(text);
                         for (var i = 0; i < lines.length; i++) {
+                            if (lines[i] == "")
+                                continue;
                             this.putText(lines[i]);
-                            this.advanceLine();
+                            if (i < lines.length - 1)
+                                this.advanceLine();
                         }
                     }
                 }
@@ -162,11 +178,8 @@ var TSOS;
             var lines = [];
             var i = 0;
             var line = text;
-            //console.log("line: " + line);
             while (i < line.length) {
                 var offset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, line.slice(0, i));
-                //console.log(line.slice(0,i));
-                //console.log(offset);
                 if (localX + offset > _DisplayXRes) {
                     lines.push(line.slice(0, i - 1));
                     //console.log("i: " + i);
@@ -183,7 +196,6 @@ var TSOS;
                 lines.push(lines[0]);
                 lines[0] = "";
             }
-            //console.log(lines);
             return lines; //.join('\n');
         };
         Console.prototype.advanceLine = function () {
@@ -193,9 +205,8 @@ var TSOS;
              * Font descent measures from the baseline to the lowest point in the font.
              * Font height margin is extra spacing between the lines.
              */
-            this.currentYPosition += _DefaultFontSize +
-                _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) +
-                _FontHeightMargin;
+            //this.currentYPosition += _DefaultFontSize + _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) + _FontHeightMargin;
+            this.currentYPosition += this.lineSize;
             this.consoleBuffer += "\n";
             // TODO: Handle scrolling. (iProject 1)
             //_DrawingContext.rect(0,0,500,500);

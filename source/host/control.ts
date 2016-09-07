@@ -52,8 +52,8 @@ module TSOS {
             if (typeof Glados === "function") {
                 // function Glados() is here, so instantiate Her into
                 // the global (and properly capitalized) _GLaDOS variable.
-                //_GLaDOS = new Glados();
-                //_GLaDOS.init();
+                _GLaDOS = new Glados();
+                _GLaDOS.init();
             }
         }
 
@@ -79,6 +79,7 @@ module TSOS {
         // Host Events
         //
         public static hostBtnStartOS_click(btn): void {
+            _Status = 'idle';
             // Disable the (passed-in) start button...
             btn.disabled = true;
 
@@ -101,6 +102,9 @@ module TSOS {
         }
 
         public static hostBtnHaltOS_click(btn): void {
+            $('body').removeClass('bg-idle');
+            $('body').addClass('bg-off');
+            _Status = 'off';
             Control.hostLog("Emergency halt", "host");
             Control.hostLog("Attempting Kernel shutdown.", "host");
             // Call the OS shutdown routine.

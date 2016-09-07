@@ -1,4 +1,5 @@
 ///<reference path="../globals.ts" />
+///<reference path="../jquery.d.ts" />
 
 /* ------------
      Devices.ts
@@ -35,6 +36,22 @@ module TSOS {
             _OSclock++;
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
+            
+            if (_OSclock % 5 == 1) {
+              // TODO Make a list of stati
+              switch (_Status) {
+                case 'idle':
+                  $('body').addClass('bg-idle');
+                  $('body').removeClass('bg-off');
+                  break;
+                case 'off':
+                  $('body').addClass('bg-off');
+                $('body').removeClass('bg-idle');
+                  break;
+                default:
+                  break;
+              }
+            }
         }
 
         //

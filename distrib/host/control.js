@@ -43,6 +43,10 @@ var TSOS;
             // Check for our testing and enrichment core, which
             // may be referenced here (from index.html) as function Glados().
             if (typeof Glados === "function") {
+                // function Glados() is here, so instantiate Her into
+                // the global (and properly capitalized) _GLaDOS variable.
+                _GLaDOS = new Glados();
+                _GLaDOS.init();
             }
         };
         Control.hostLog = function (msg, source) {
@@ -62,6 +66,7 @@ var TSOS;
         // Host Events
         //
         Control.hostBtnStartOS_click = function (btn) {
+            _Status = 'idle';
             // Disable the (passed-in) start button...
             btn.disabled = true;
             // .. enable the Halt and Reset buttons ...
@@ -79,6 +84,9 @@ var TSOS;
             _Kernel.krnBootstrap(); // _GLaDOS.afterStartup() will get called in there, if configured.
         };
         Control.hostBtnHaltOS_click = function (btn) {
+            $('body').removeClass('bg-idle');
+            $('body').addClass('bg-off');
+            _Status = 'off';
             Control.hostLog("Emergency halt", "host");
             Control.hostLog("Attempting Kernel shutdown.", "host");
             // Call the OS shutdown routine.

@@ -1,11 +1,21 @@
 /* TSOS.css */
 
 body {
-  background: #909193 url(distrib/images/linen.png) repeat;
+  /* background: #909193 url(distrib/images/linen.png) repeat;
+   */
+  transition: 1s;
   font-family: Helvetica, Verdana, Arial, sans-serif;
   font-size: 12pt;
   font-weight: normal;
   font-style: normal;
+}
+
+.bg-off {
+  background-color: #aaa;
+}
+
+.bg-idle {
+  background-color: #6f6;
 }
 
 h1 {
@@ -31,8 +41,8 @@ h3 {
 }
 
 #display {
-  background-color:#DFDBC3;
-  border: 2px solid red;
+  background-color:#eee;
+  border: 2px solid black;
   cursor: default;
 }
 
