@@ -28,16 +28,34 @@ module TSOS {
             _hardwareClockID = -1;
         }
 
+        public static getISODate(): string {
+            let d = new Date();
+            let month = d.getMonth();
+            let day = d.getDay();
+            let hours = d.getHours();
+            let minutes = d.getMinutes();
+            let seconds = d.getSeconds();
+            return d.getFullYear() + "-" +
+                (month < 10 ? '0' : '') + month + "-" +
+                (day < 10 ? '0' : '') + day + "T" +
+                (hours < 10 ? '0' : '') + hours + ":" +
+                (minutes < 10 ? '0' : '') + minutes + ":" +
+                (seconds < 10 ? '0' : '') + seconds;
+
+        }
+
         //
         // Hardware/Host Clock Pulse
         //
         public static hostClockPulse(): void {
-            // Increment the hardware (host) clock.
-            _OSclock++;
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
+
+            if (_OSclock % 10 == 0) {
+                $('#statusDate').text(Devices.getISODate());
+            }
             
-            if (_OSclock % 5 == 1) {
+            if (_OSclock % 5 == 0) {
               // TODO Make a list of stati
               switch (_Status) {
                 case 'idle':
@@ -52,6 +70,8 @@ module TSOS {
                   break;
               }
             }
+            // Increment the hardware (host) clock.
+            _OSclock++;
         }
 
         //

@@ -24,15 +24,30 @@ var TSOS;
         function Devices() {
             _hardwareClockID = -1;
         }
+        Devices.getISODate = function () {
+            var d = new Date();
+            var month = d.getMonth();
+            var day = d.getDay();
+            var hours = d.getHours();
+            var minutes = d.getMinutes();
+            var seconds = d.getSeconds();
+            return d.getFullYear() + "-" +
+                (month < 10 ? '0' : '') + month + "-" +
+                (day < 10 ? '0' : '') + day + "T" +
+                (hours < 10 ? '0' : '') + hours + ":" +
+                (minutes < 10 ? '0' : '') + minutes + ":" +
+                (seconds < 10 ? '0' : '') + seconds;
+        };
         //
         // Hardware/Host Clock Pulse
         //
         Devices.hostClockPulse = function () {
-            // Increment the hardware (host) clock.
-            _OSclock++;
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
-            if (_OSclock % 5 == 1) {
+            if (_OSclock % 10 == 0) {
+                $('#statusDate').text(Devices.getISODate());
+            }
+            if (_OSclock % 5 == 0) {
                 // TODO Make a list of stati
                 switch (_Status) {
                     case 'idle':
@@ -47,6 +62,8 @@ var TSOS;
                         break;
                 }
             }
+            // Increment the hardware (host) clock.
+            _OSclock++;
         };
         //
         // Keyboard Interrupt, a HARDWARE Interrupt Request. (See pages 560-561 in our text book.)

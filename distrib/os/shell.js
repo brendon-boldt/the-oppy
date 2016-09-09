@@ -1,5 +1,6 @@
 ///<reference path="../globals.ts" />
 ///<reference path="../utils.ts" />
+///<reference path="../jquery.d.ts" />
 ///<reference path="shellCommand.ts" />
 ///<reference path="userCommand.ts" />
 /* ------------
@@ -24,6 +25,10 @@ var TSOS;
         Shell.prototype.init = function () {
             var sc;
             // Load the command list.
+            sc = new TSOS.ShellCommand(this.shellStatus, "status", "- .");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellWhereami, "whereami", "- Prints where I am.");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellDate, "date", "- Prints the current date.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellEcho, "echo", "- Echoes the given <strings>.");
@@ -51,6 +56,10 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             // prompt <string>
             sc = new TSOS.ShellCommand(this.shellPrompt, "prompt", "<string> - Sets the prompt.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellVanish, "vanish", " - Hides the OS");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellAppear, "appear", " - Unhides the OS");
             this.commandList[this.commandList.length] = sc;
             // ps  - list the running processes and their IDs
             // kill <id> - kills the specified process id.
@@ -121,7 +130,7 @@ var TSOS;
             // 1. Remove leading and trailing spaces.
             buffer = TSOS.Utils.trim(buffer);
             // 2. Lower-case it.
-            buffer = buffer.toLowerCase();
+            //buffer = buffer.toLowerCase();
             // 3. Separate on spaces so we can determine the command and command-line args, if any.
             var tempList = buffer.split(" ");
             // 4. Take the first (zeroth) element and use that as the command.
@@ -143,6 +152,18 @@ var TSOS;
         // Shell Command Functions.  Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
+        Shell.prototype.shellStatus = function (args) {
+            $('#statusText').text(args.join(' '));
+        };
+        Shell.prototype.shellVanish = function () {
+            $('body').addClass('os-hidden');
+        };
+        Shell.prototype.shellAppear = function () {
+            $('body').removeClass('os-hidden');
+        };
+        Shell.prototype.shellWhereami = function () {
+            _StdOut.putText("I am present to you.");
+        };
         Shell.prototype.shellDate = function () {
             var d = new Date();
             var month = d.getMonth();

@@ -68,7 +68,16 @@
              onclick="TSOS.Control.hostBtnReset_click(this);">
    </div>
 
-   <div id="divConsole" style="margin:4px; width:500px; height:500px; float:left;">
+   <div id="divStatusBar">
+     <div id="statusText" class="statusBox">
+       [status]
+     </div>
+     <div id="statusDate" class="statusBox">
+       1970-01-01T00:00:00
+     </div>
+   </div>
+
+   <div id="divConsole" style="margin:4px; width: 500px; height:500px; float:left;">
       <canvas id="display"
               width="500px"
               height="500px"

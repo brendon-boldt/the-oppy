@@ -18,6 +18,10 @@ body {
   background-color: #6f6;
 }
 
+.os-hidden {
+  opacity: 0;
+}
+
 h1 {
   color: black;
   font-size: 24pt;
@@ -55,4 +59,29 @@ h3 {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 8pt;
   text-align: center;
+}
+    
+#divStatusBar {
+  margin-left: 4px;
+}
+
+.statusBox {
+  border: 2px solid black;
+  font-family: monospace;
+  font-size: 10pt;
+  height:12pt;
+  background-color: #eee;
+  padding: 2px;
+}
+
+#statusText {
+  position: absolute;
+  width: 340px;
+}
+
+#statusDate {
+  border: 2px 2px 2px 0 solid black;
+  padding-left: 4px;
+  margin-left: 344px;
+  width: 150px
 }

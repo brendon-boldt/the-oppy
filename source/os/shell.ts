@@ -1,5 +1,6 @@
 ///<reference path="../globals.ts" />
 ///<reference path="../utils.ts" />
+///<reference path="../jquery.d.ts" />
 ///<reference path="shellCommand.ts" />
 ///<reference path="userCommand.ts" />
 
@@ -29,7 +30,19 @@ module TSOS {
         public init() {
             var sc;
 
+
+
             // Load the command list.
+            sc = new ShellCommand(this.shellStatus,
+                                  "status",
+                                  "- .");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellWhereami,
+                                  "whereami",
+                                  "- Prints where I am.");
+            this.commandList[this.commandList.length] = sc;
+
             sc = new ShellCommand(this.shellDate,
                                   "date",
                                   "- Prints the current date.");
@@ -86,6 +99,16 @@ module TSOS {
             sc = new ShellCommand(this.shellPrompt,
                                   "prompt",
                                   "<string> - Sets the prompt.");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellVanish,
+                                  "vanish",
+                                  " - Hides the OS");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellAppear,
+                                  "appear",
+                                  " - Unhides the OS");
             this.commandList[this.commandList.length] = sc;
 
             // ps  - list the running processes and their IDs
@@ -160,7 +183,7 @@ module TSOS {
             buffer = Utils.trim(buffer);
 
             // 2. Lower-case it.
-            buffer = buffer.toLowerCase();
+            //buffer = buffer.toLowerCase();
 
             // 3. Separate on spaces so we can determine the command and command-line args, if any.
             var tempList = buffer.split(" ");
@@ -186,6 +209,22 @@ module TSOS {
         // Shell Command Functions.  Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
+
+        public shellStatus(args: string[]): void {
+          $('#statusText').text(args.join(' '));
+        }
+
+        public shellVanish(): void {
+          $('body').addClass('os-hidden');
+        }
+
+        public shellAppear(): void {
+          $('body').removeClass('os-hidden');
+        }
+
+        public shellWhereami(): void {
+            _StdOut.putText("I am present to you.");
+        }
 
         public shellDate(): void {
             let d = new Date();
