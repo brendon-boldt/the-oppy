@@ -33,9 +33,14 @@ module TSOS {
 
 
             // Load the command list.
+            sc = new ShellCommand(this.shellLoad,
+                                  "load",
+                                  " - Loads the user program in the text area.");
+            this.commandList[this.commandList.length] = sc;
+
             sc = new ShellCommand(this.shellStatus,
                                   "status",
-                                  "- .");
+                                  "<string> - Updates the OS text status.");
             this.commandList[this.commandList.length] = sc;
 
             sc = new ShellCommand(this.shellWhereami,
@@ -50,7 +55,7 @@ module TSOS {
 
             sc = new ShellCommand(this.shellEcho,
                                   "echo",
-                                  "- Echoes the given <strings>.");
+                                  "<string> - Echoes the given <string>.");
             this.commandList[this.commandList.length] = sc;
 
             // ver
@@ -209,6 +214,32 @@ module TSOS {
         // Shell Command Functions.  Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
+
+        private static isValidChar(ch): boolean {
+            let c: number = ch.charCodeAt();
+            return (c == 32)              // Space
+                || (c >= 48 && c <= 57)   // Digits
+                || (c >= 97 && c <= 102)  // Lowercase a-f
+                || (c >= 65 && c <= 70);  // Uppercase A-F
+        }
+
+        public shellLoad(): void {
+            let text: string = $('#taProgramInput').val();
+            let valid: boolean = text.length != 0;
+            for (let i = 0; i < text.length; i++) {
+                valid = valid && Shell.isValidChar(text.charAt(i));
+            }
+            if (valid) {
+                _StdOut.putText("User program validated.");
+            } else {
+                _StdOut.putText("User program invalid.");
+                _StdOut.advanceLine();
+                if (text.length == 0)
+                    _StdOut.putText("Input must be non-empty.");
+                else
+                    _StdOut.putText("Allowed characters are: 0-9, a-f, A-F.");
+            }
+        }
 
         public shellStatus(args: string[]): void {
           $('#statusText').text(args.join(' '));

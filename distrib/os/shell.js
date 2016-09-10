@@ -25,13 +25,15 @@ var TSOS;
         Shell.prototype.init = function () {
             var sc;
             // Load the command list.
-            sc = new TSOS.ShellCommand(this.shellStatus, "status", "- .");
+            sc = new TSOS.ShellCommand(this.shellLoad, "load", " - Loads the user program in the text area.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellStatus, "status", "<string> - Updates the OS text status.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellWhereami, "whereami", "- Prints where I am.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellDate, "date", "- Prints the current date.");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellEcho, "echo", "- Echoes the given <strings>.");
+            sc = new TSOS.ShellCommand(this.shellEcho, "echo", "<string> - Echoes the given <string>.");
             this.commandList[this.commandList.length] = sc;
             // ver
             sc = new TSOS.ShellCommand(this.shellVer, "ver", "- Displays the current version data.");
@@ -152,6 +154,31 @@ var TSOS;
         // Shell Command Functions.  Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
+        Shell.isValidChar = function (ch) {
+            var c = ch.charCodeAt();
+            return (c == 32) // Space
+                || (c >= 48 && c <= 57) // Digits
+                || (c >= 97 && c <= 102) // Lowercase a-f
+                || (c >= 65 && c <= 70); // Uppercase A-F
+        };
+        Shell.prototype.shellLoad = function () {
+            var text = $('#taProgramInput').val();
+            var valid = text.length != 0;
+            for (var i = 0; i < text.length; i++) {
+                valid = valid && Shell.isValidChar(text.charAt(i));
+            }
+            if (valid) {
+                _StdOut.putText("User program validated.");
+            }
+            else {
+                _StdOut.putText("User program invalid.");
+                _StdOut.advanceLine();
+                if (text.length == 0)
+                    _StdOut.putText("Input must be non-empty.");
+                else
+                    _StdOut.putText("Allowed characters are: 0-9, a-f, A-F.");
+            }
+        };
         Shell.prototype.shellStatus = function (args) {
             $('#statusText').text(args.join(' '));
         };
