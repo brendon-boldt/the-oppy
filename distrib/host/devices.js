@@ -49,14 +49,22 @@ var TSOS;
             }
             if (_OSclock % 5 == 0) {
                 // TODO Make a list of stati
+                $('body').removeClass('bg-idle');
+                $('body').removeClass('bg-off');
+                $('body').removeClass('bg-processing');
+                $('body').removeClass('bg-error');
                 switch (_Status) {
                     case 'idle':
                         $('body').addClass('bg-idle');
-                        $('body').removeClass('bg-off');
                         break;
                     case 'off':
                         $('body').addClass('bg-off');
-                        $('body').removeClass('bg-idle');
+                        break;
+                    case 'error':
+                        $('body').addClass('bg-error');
+                        break;
+                    case 'proessing':
+                        $('body').addClass('bg-processing');
                         break;
                     default:
                         break;

@@ -25,6 +25,8 @@ var TSOS;
         Shell.prototype.init = function () {
             var sc;
             // Load the command list.
+            sc = new TSOS.ShellCommand(this.shellPanic, "panic", " - Initiates kernel panic.");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellLoad, "load", " - Loads the user program in the text area.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellStatus, "status", "<string> - Updates the OS text status.");
@@ -125,7 +127,8 @@ var TSOS;
                 _StdOut.advanceLine();
             }
             // ... and finally write the prompt again.
-            this.putPrompt();
+            if (_Status != 'error' && _Status != 'off')
+                this.putPrompt();
         };
         Shell.prototype.parseInput = function (buffer) {
             var retVal = new TSOS.UserCommand();
@@ -154,6 +157,9 @@ var TSOS;
         // Shell Command Functions.  Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
+        Shell.prototype.shellPanic = function (args) {
+            _Kernel.krnTrapError('User initiated kernel panic.');
+        };
         Shell.isValidChar = function (ch) {
             var c = ch.charCodeAt();
             return (c == 32) // Space

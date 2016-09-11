@@ -18,6 +18,14 @@ body {
   background-color: #6f6;
 }
 
+.bg-error {
+  background-color: #f66;
+}
+
+.bg-processing {
+  background-color: #66f;
+}
+
 .os-hidden {
   opacity: 0;
 }

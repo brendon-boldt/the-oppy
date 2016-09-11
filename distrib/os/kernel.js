@@ -52,6 +52,8 @@ var TSOS;
             }
         };
         Kernel.prototype.krnShutdown = function () {
+            _StdOut.putText("The Oppy is shutting down...");
+            _StdOut.advanceLine();
             this.krnTrace("begin shutdown OS");
             // TODO: Check for running processes.  If there are some, alert and stop. Else...
             // ... Disable the Interrupts.
@@ -62,6 +64,10 @@ var TSOS;
             // More?
             //
             this.krnTrace("end shutdown OS");
+            if (_Status == 'idle')
+                _Status = 'off';
+            //$('body').removeClass('bg-idle');
+            //$('body').addClass('bg-off');
         };
         Kernel.prototype.krnOnCPUClockPulse = function () {
             /* This gets called from the host hardware simulation every time there is a hardware clock pulse.
@@ -155,6 +161,11 @@ var TSOS;
         Kernel.prototype.krnTrapError = function (msg) {
             TSOS.Control.hostLog("OS ERROR - TRAP: " + msg);
             // TODO: Display error on console, perhaps in some sort of colored screen. (Maybe blue?)
+            _Status = 'error';
+            _StdOut.putText('\\(;`^`)/');
+            _StdOut.advanceLine();
+            _StdOut.putText(msg);
+            _StdOut.advanceLine();
             this.krnShutdown();
         };
         return Kernel;

@@ -102,8 +102,6 @@ module TSOS {
         }
 
         public static hostBtnHaltOS_click(btn): void {
-            $('body').removeClass('bg-idle');
-            $('body').addClass('bg-off');
             _Status = 'off';
             Control.hostLog("Emergency halt", "host");
             Control.hostLog("Attempting Kernel shutdown.", "host");

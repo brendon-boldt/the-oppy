@@ -84,8 +84,6 @@ var TSOS;
             _Kernel.krnBootstrap(); // _GLaDOS.afterStartup() will get called in there, if configured.
         };
         Control.hostBtnHaltOS_click = function (btn) {
-            $('body').removeClass('bg-idle');
-            $('body').addClass('bg-off');
             _Status = 'off';
             Control.hostLog("Emergency halt", "host");
             Control.hostLog("Attempting Kernel shutdown.", "host");

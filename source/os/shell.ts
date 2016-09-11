@@ -33,6 +33,11 @@ module TSOS {
 
 
             // Load the command list.
+            sc = new ShellCommand(this.shellPanic,
+                                  "panic",
+                                  " - Initiates kernel panic.");
+            this.commandList[this.commandList.length] = sc;
+
             sc = new ShellCommand(this.shellLoad,
                                   "load",
                                   " - Loads the user program in the text area.");
@@ -178,7 +183,8 @@ module TSOS {
                 _StdOut.advanceLine();
             }
             // ... and finally write the prompt again.
-            this.putPrompt();
+            if (_Status != 'error' && _Status != 'off')
+              this.putPrompt();
         }
 
         public parseInput(buffer): UserCommand {
@@ -214,6 +220,10 @@ module TSOS {
         // Shell Command Functions.  Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
+
+        public shellPanic(args: string[]): void {
+          _Kernel.krnTrapError('User initiated kernel panic.');
+        }
 
         private static isValidChar(ch): boolean {
             let c: number = ch.charCodeAt();

@@ -61,6 +61,8 @@ module TSOS {
         }
 
         public krnShutdown() {
+            _StdOut.putText("The Oppy is shutting down...");
+            _StdOut.advanceLine();
             this.krnTrace("begin shutdown OS");
             // TODO: Check for running processes.  If there are some, alert and stop. Else...
             // ... Disable the Interrupts.
@@ -71,6 +73,11 @@ module TSOS {
             // More?
             //
             this.krnTrace("end shutdown OS");
+            if (_Status == 'idle')
+              _Status = 'off';
+            //$('body').removeClass('bg-idle');
+            //$('body').addClass('bg-off');
+            
         }
 
 
@@ -174,6 +181,11 @@ module TSOS {
         public krnTrapError(msg) {
             Control.hostLog("OS ERROR - TRAP: " + msg);
             // TODO: Display error on console, perhaps in some sort of colored screen. (Maybe blue?)
+            _Status = 'error';
+            _StdOut.putText('\\(;`^`)/');
+            _StdOut.advanceLine();
+            _StdOut.putText(msg);
+            _StdOut.advanceLine();
             this.krnShutdown();
         }
     }
