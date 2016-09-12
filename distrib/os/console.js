@@ -10,11 +10,12 @@
 var TSOS;
 (function (TSOS) {
     var Console = (function () {
-        function Console(currentFont, currentFontSize, currentXPosition, currentYPosition, commandHistory, consoleBuffer, inputBuffer, commandIndex) {
+        function Console(currentFont, currentFontSize, currentXPosition, currentYPosition, cursorState, commandHistory, consoleBuffer, inputBuffer, commandIndex) {
             if (currentFont === void 0) { currentFont = _DefaultFontFamily; }
             if (currentFontSize === void 0) { currentFontSize = _DefaultFontSize; }
             if (currentXPosition === void 0) { currentXPosition = 0; }
             if (currentYPosition === void 0) { currentYPosition = _DefaultFontSize; }
+            if (cursorState === void 0) { cursorState = false; }
             if (commandHistory === void 0) { commandHistory = []; }
             if (consoleBuffer === void 0) { consoleBuffer = ""; }
             if (inputBuffer === void 0) { inputBuffer = ""; }
@@ -23,6 +24,7 @@ var TSOS;
             this.currentFontSize = currentFontSize;
             this.currentXPosition = currentXPosition;
             this.currentYPosition = currentYPosition;
+            this.cursorState = cursorState;
             this.commandHistory = commandHistory;
             this.consoleBuffer = consoleBuffer;
             this.inputBuffer = inputBuffer;
@@ -30,6 +32,9 @@ var TSOS;
             this.lineSize = _DefaultFontSize
                 + _DrawingContext.fontDescent(this.currentFont, this.currentFontSize)
                 + _FontHeightMargin;
+            this.fontHeight = _DrawingContext
+                .fontDescent(this.currentFont, this.currentFontSize)
+                + _DefaultFontSize;
         }
         Console.prototype.init = function () {
             this.clearScreen();
@@ -53,19 +58,15 @@ var TSOS;
             }
             this.inputBuffer = tempBuffer;
         };
-        Console.prototype.tabComplete = function (str) {
-            //console.log("str: " + str);
+        Console.prototype.getTabArray = function (str) {
+            var results = [];
             var cl = _OsShell.commandList;
             for (var i = 0; i < cl.length; i++) {
-                //let index: number = (this.commandIndex + i) % cl.length;
-                var index = i % cl.length;
-                if (cl[index].command.indexOf(str) === 0) {
-                    str = cl[index].command;
-                    //this.commandIndex = (index + 1) % cl.length;
-                    break;
+                if (cl[i].command.indexOf(str) === 0) {
+                    results.push(cl[i].command);
                 }
             }
-            return str;
+            return results;
         };
         Console.prototype.getHistoricCommand = function () {
             if (this.commandHistory.length == 0)
@@ -82,42 +83,67 @@ var TSOS;
             }
             return this.commandHistory[this.commandIndex];
         };
+        Console.prototype.isChar = function (chr) {
+            return chr.length == 1;
+            /*
+            return (<any>['a','b','c','d','e','f','g','h',
+                'i','j','k','l','m','n','o','p','q',
+                'r','s','t','u','v','w','x','y','z',
+                '0','1','2','3','4','5','6','7','8','9',
+                ])
+                .includes(chr.toLowerCase());
+            */
+        };
         Console.prototype.handleInput = function () {
             while (_KernelInputQueue.getSize() > 0) {
                 var chr = _KernelInputQueue.dequeue();
-                if (chr === String.fromCharCode(13)) {
+                if (chr === 'enter') {
                     _OsShell.handleInput(this.inputBuffer);
                     this.commandHistory.push(this.inputBuffer);
                     this.commandIndex = -1;
                     this.inputBuffer = "";
                 }
-                else if (chr === String.fromCharCode(8)) {
+                else if (chr === 'backspace') {
                     this.backspaceText();
                     this.inputBuffer = this.inputBuffer.substring(0, this.inputBuffer.length - 1);
                 }
-                else if (chr === String.fromCharCode(9)) {
+                else if (chr === 'tab') {
                     var tempBuffer = this.inputBuffer;
                     // Erase the text of the user input and redraw it
                     // with the tab completed command.
-                    this.clearUserInput();
-                    this.inputBuffer = this.tabComplete(tempBuffer);
-                    this.putText(this.inputBuffer);
+                    var results = this.getTabArray(this.inputBuffer);
+                    if (results.length == 1) {
+                        this.clearUserInput();
+                        this.inputBuffer = results[0];
+                        this.putText(this.inputBuffer);
+                    }
+                    else if (results.length > 1) {
+                        this.advanceLine();
+                        this.putText(results.join(' '));
+                        this.advanceLine();
+                        _OsShell.putPrompt();
+                        this.putText(this.inputBuffer);
+                    }
                 }
-                else if (chr === String.fromCharCode(38)) {
+                else if (chr === 'up') {
                     this.commandIndex -= 1;
                     this.clearUserInput();
                     this.inputBuffer = this.getHistoricCommand();
                     this.putText(this.inputBuffer);
                 }
-                else if (chr === String.fromCharCode(40)) {
+                else if (chr === 'down') {
                     this.commandIndex += 1;
                     this.clearUserInput();
                     this.inputBuffer = this.getHistoricCommand();
                     this.putText(this.inputBuffer);
                 }
-                else {
+                else if (this.isChar(chr)) {
                     this.putText(chr);
                     this.inputBuffer += chr;
+                }
+                else if (chr === 'space') {
+                    this.putText(' ');
+                    this.inputBuffer += ' ';
                 }
             }
         };
@@ -164,6 +190,8 @@ var TSOS;
                     }
                 }
                 else {
+                    if (this.cursorState)
+                        this.toggleCursor(false);
                     _DrawingContext.drawText(this.currentFont, this.currentFontSize, this.currentXPosition, this.currentYPosition, text);
                     this.currentXPosition = this.currentXPosition + offset;
                     this.consoleBuffer += text;
@@ -199,13 +227,9 @@ var TSOS;
             return lines; //.join('\n');
         };
         Console.prototype.advanceLine = function () {
+            //if (this.cursorState)
+            this.toggleCursor(false);
             this.currentXPosition = 0;
-            /*
-             * Font size measures from the baseline to the highest point in the font.
-             * Font descent measures from the baseline to the lowest point in the font.
-             * Font height margin is extra spacing between the lines.
-             */
-            //this.currentYPosition += _DefaultFontSize + _DrawingContext.fontDescent(this.currentFont, this.currentFontSize) + _FontHeightMargin;
             this.currentYPosition += this.lineSize;
             this.consoleBuffer += "\n";
             // TODO: Handle scrolling. (iProject 1)
@@ -220,6 +244,22 @@ var TSOS;
                     this.putText(tempBuffer.charAt(i));
                 }
                 this.consoleBuffer = tempBuffer;
+            }
+        };
+        Console.prototype.toggleCursor = function (state) {
+            var x = this.currentXPosition;
+            var y = this.currentYPosition - _DefaultFontSize;
+            var xSize = 10;
+            var ySize = this.fontHeight;
+            if (state) {
+                _DrawingContext.strokeStyle = 'rgba(0,0,0,0)';
+                // Make the fill slightly smaller so it is cleared completely
+                _DrawingContext.fillRect(x + 1, y + 1, xSize - 2, ySize - 2);
+                this.cursorState = true;
+            }
+            else {
+                _DrawingContext.clearRect(x, y, xSize, ySize);
+                this.cursorState = false;
             }
         };
         return Console;

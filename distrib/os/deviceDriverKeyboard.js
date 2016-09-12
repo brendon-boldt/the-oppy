@@ -31,6 +31,109 @@ var TSOS;
             this.status = "loaded";
             // More?
         };
+        // is non-letter printing char
+        DeviceDriverKeyboard.prototype.isNLPChar = function (c) {
+            return ((c >= 48) && (c <= 57)) // digits
+                || ((c >= 186) && (c <= 192))
+                || ((c >= 219) && (c <= 222));
+        };
+        DeviceDriverKeyboard.prototype.getMiscChar = function (c, isShifted) {
+            if (isShifted) {
+                switch (c) {
+                    case 48:
+                        return ')';
+                    case 49:
+                        return '!';
+                    case 50:
+                        return '@';
+                    case 51:
+                        return '#';
+                    case 52:
+                        return '$';
+                    case 53:
+                        return '%';
+                    case 54:
+                        return '^';
+                    case 55:
+                        return '&';
+                    case 56:
+                        return '*';
+                    case 57:
+                        return '(';
+                    case 186:
+                        return ':';
+                    case 187:
+                        return '+';
+                    case 188:
+                        return '<';
+                    case 189:
+                        return '_';
+                    case 190:
+                        return '>';
+                    case 191:
+                        return '?';
+                    case 192:
+                        return '~';
+                    case 219:
+                        return '{';
+                    case 220:
+                        return '|';
+                    case 222:
+                        return '"';
+                    case 221:
+                        return '}';
+                    default:
+                        break;
+                }
+            }
+            else {
+                if ((c >= 48) && (c <= 57))
+                    return (c - 48) + '';
+                switch (c) {
+                    case 186:
+                        return ';';
+                    case 187:
+                        return '=';
+                    case 188:
+                        return ',';
+                    case 189:
+                        return '-';
+                    case 190:
+                        return '.';
+                    case 191:
+                        return '/';
+                    case 192:
+                        return '`';
+                    case 219:
+                        return '[';
+                    case 220:
+                        return '\\';
+                    case 222:
+                        return "'";
+                    case 221:
+                        return ']';
+                    default:
+                        break;
+                }
+            }
+            return '';
+        };
+        DeviceDriverKeyboard.prototype.getSpecialKey = function (c) {
+            switch (c) {
+                case 8:
+                    return 'backspace';
+                case 9:
+                    return 'tab';
+                case 13:
+                    return 'enter';
+                case 32:
+                    return 'space';
+                case 38:
+                    return 'up';
+                case 40:
+                    return 'down';
+            }
+        };
         DeviceDriverKeyboard.prototype.krnKbdDispatchKeyPress = function (params) {
             // Parse the params.    TODO: Check that the params are valid and osTrapError if not.
             var keyCode = params[0];
@@ -42,23 +145,25 @@ var TSOS;
                 ((keyCode >= 97) && (keyCode <= 123))) {
                 // Determine the character we want to display.
                 // Assume it's lowercase...
-                chr = String.fromCharCode(keyCode + 32);
                 // ... then check the shift key and re-adjust if necessary.
-                if (isShifted) {
+                chr = String.fromCharCode(keyCode + 32);
+                if (isShifted)
                     chr = String.fromCharCode(keyCode);
-                }
                 // TODO: Check for caps-lock and handle as shifted if so.
                 _KernelInputQueue.enqueue(chr);
             }
-            else if (((keyCode >= 48) && (keyCode <= 57)) ||
-                (keyCode == 32) ||
+            else if ((keyCode == 32) ||
                 (keyCode == 38) ||
                 (keyCode == 40) ||
                 (keyCode == 9) ||
                 (keyCode == 8) ||
                 (keyCode == 13)) {
-                chr = String.fromCharCode(keyCode);
-                _KernelInputQueue.enqueue(chr);
+                _KernelInputQueue.enqueue(this.getSpecialKey(keyCode));
+            }
+            else {
+                chr = this.getMiscChar(keyCode, isShifted);
+                if (chr)
+                    _KernelInputQueue.enqueue(chr);
             }
         };
         return DeviceDriverKeyboard;

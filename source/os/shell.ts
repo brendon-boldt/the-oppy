@@ -81,9 +81,9 @@ module TSOS {
                                   "- Shuts down the virtual OS but leaves the underlying host / hardware simulation running.");
             this.commandList[this.commandList.length] = sc;
 
-            // cls
+            // clear
             sc = new ShellCommand(this.shellCls,
-                                  "cls",
+                                  "clear",
                                   "- Clears the screen and resets the cursor position.");
             this.commandList[this.commandList.length] = sc;
 
@@ -327,6 +327,8 @@ module TSOS {
 
         public shellShutdown(args) {
              _StdOut.putText("Shutting down...");
+             _StdOut.advanceLine();
+
              // Call Kernel shutdown routine.
             _Kernel.krnShutdown();
             // TODO: Stop the final prompt from being displayed.  If possible.  Not a high priority.  (Damn OCD!)

@@ -48,6 +48,10 @@ var TSOS;
                 $('#statusDate').text(Devices.getISODate());
             }
             if (_OSclock % 5 == 0) {
+                if (_Status == 'idle' || _Status == 'processing')
+                    _Console.toggleCursor(!_Console.cursorState);
+                else
+                    _Console.toggleCursor(false);
                 // TODO Make a list of stati
                 $('body').removeClass('bg-idle');
                 $('body').removeClass('bg-off');

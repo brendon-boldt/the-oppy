@@ -46,8 +46,8 @@ var TSOS;
             // shutdown
             sc = new TSOS.ShellCommand(this.shellShutdown, "shutdown", "- Shuts down the virtual OS but leaves the underlying host / hardware simulation running.");
             this.commandList[this.commandList.length] = sc;
-            // cls
-            sc = new TSOS.ShellCommand(this.shellCls, "cls", "- Clears the screen and resets the cursor position.");
+            // clear
+            sc = new TSOS.ShellCommand(this.shellCls, "clear", "- Clears the screen and resets the cursor position.");
             this.commandList[this.commandList.length] = sc;
             // man <topic>
             sc = new TSOS.ShellCommand(this.shellMan, "man", "<topic> - Displays the MANual page for <topic>.");
@@ -251,6 +251,7 @@ var TSOS;
         };
         Shell.prototype.shellShutdown = function (args) {
             _StdOut.putText("Shutting down...");
+            _StdOut.advanceLine();
             // Call Kernel shutdown routine.
             _Kernel.krnShutdown();
             // TODO: Stop the final prompt from being displayed.  If possible.  Not a high priority.  (Damn OCD!)

@@ -21,19 +21,19 @@ module TSOS {
             return (this.q.length == 0);
         }
 
-        public enqueue(element) {
+        public enqueue(element: any) {
             this.q.push(element);
         }
 
-        public dequeue() {
-            var retVal = null;
+        public dequeue(): any {
+            let retVal = null;
             if (this.q.length > 0) {
                 retVal = this.q.shift();
             }
             return retVal;
         }
 
-        public toString() {
+        public toString(): string {
             var retVal = "";
             for (var i in this.q) {
                 retVal += "[" + this.q[i] + "] ";
