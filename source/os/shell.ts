@@ -225,6 +225,7 @@ module TSOS {
           _Kernel.krnTrapError('User initiated kernel panic.');
         }
 
+        // Check if something is a printable character
         private static isValidChar(ch): boolean {
             let c: number = ch.charCodeAt();
             return (c == 32)              // Space
@@ -255,16 +256,18 @@ module TSOS {
           $('#statusText').text(args.join(' '));
         }
 
+        // Make the OS fade away
         public shellVanish(): void {
           $('body').addClass('os-hidden');
         }
 
+        // Make the OS reappear
         public shellAppear(): void {
           $('body').removeClass('os-hidden');
         }
 
         public shellWhereami(): void {
-            _StdOut.putText("I am present to you.");
+            _StdOut.putText("."); 
         }
 
         public shellDate(): void {
@@ -280,7 +283,6 @@ module TSOS {
 
         public shellEcho(args: string[]): void {
             _StdOut.putText(args.join(' '));
-            //_StdOut.advanceLine();
         }
 
         public shellInvalidCommand() {
@@ -312,6 +314,7 @@ module TSOS {
            }
         }
 
+        // Print the version of the OS and the browser information
         public shellVer(args) {
             _StdOut.putText(APP_NAME + " version " + APP_VERSION
                + " on " + navigator.userAgent );
@@ -331,7 +334,6 @@ module TSOS {
 
              // Call Kernel shutdown routine.
             _Kernel.krnShutdown();
-            // TODO: Stop the final prompt from being displayed.  If possible.  Not a high priority.  (Damn OCD!)
         }
 
         public shellCls(args) {

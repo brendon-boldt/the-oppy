@@ -79,7 +79,9 @@ module TSOS {
         // Host Events
         //
         public static hostBtnStartOS_click(btn): void {
+            // OS should be running normally now 
             _Status = 'idle';
+
             // Disable the (passed-in) start button...
             btn.disabled = true;
 
@@ -102,6 +104,7 @@ module TSOS {
         }
 
         public static hostBtnHaltOS_click(btn): void {
+
             _Status = 'off';
             Control.hostLog("Emergency halt", "host");
             Control.hostLog("Attempting Kernel shutdown.", "host");

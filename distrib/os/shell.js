@@ -195,7 +195,7 @@ var TSOS;
             $('body').removeClass('os-hidden');
         };
         Shell.prototype.shellWhereami = function () {
-            _StdOut.putText("I am present to you.");
+            _StdOut.putText(".");
         };
         Shell.prototype.shellDate = function () {
             var d = new Date();
