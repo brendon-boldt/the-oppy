@@ -31,13 +31,14 @@ module TSOS {
             // More?
         }
 
-        // is non-letter printing char
+        // Is non-letter printing char
         private isNLPChar(c: number): boolean {
             return ((c >= 48) && (c <= 57)) // digits
                 || ((c >= 186) && (c <= 192))
                 || ((c >= 219) && (c <= 222));
         }
 
+        // Get the correct character corresponding to the pressed key
         private getMiscChar(c: number, isShifted: boolean): string {
             if (isShifted) {
                 switch (c) {
