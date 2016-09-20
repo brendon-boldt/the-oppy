@@ -3,11 +3,14 @@
 body {
   /* background: #909193 url(distrib/images/linen.png) repeat;
    */
+  /*background: url(distrib/images/pattern.png) repeat;*/
   transition: 1s;
   font-family: Helvetica, Verdana, Arial, sans-serif;
   font-size: 12pt;
   font-weight: normal;
   font-style: normal;
+  height: 700px;
+  width: 100%;
 }
 
 .bg-off {
@@ -58,38 +61,65 @@ h3 {
   cursor: default;
 }
 
-.normal_button {
-  width: 100px;
-}
-
 .footerText {
   color: black;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 8pt;
   text-align: center;
 }
-    
+      
+.btn {
+}
+
+.btn-success, .btn-danger, .btn-default {
+  border: none;
+}
+
 #divStatusBar {
   margin-left: 4px;
 }
 
-.statusBox {
-  border: 2px solid black;
-  font-family: monospace;
-  font-size: 10pt;
-  height:12pt;
-  background-color: #eee;
-  padding: 2px;
+#statusRow {
+  margin-right: -10px;
+  font-size: 18pt;
+}
+
+
+#statusTitle {
+}
+#statusButtons {
+  font-size: 12pt;
+  text-align: right;
 }
 
 #statusText {
-  position: absolute;
-  width: 340px;
+  bottom: 0;
 }
 
 #statusDate {
-  border: 2px 2px 2px 0 solid black;
-  padding-left: 4px;
-  margin-left: 344px;
-  width: 150px
+  padding-top: 6pt;
+  font-size: 12pt;
+  text-align: right;
+  bottom: 0;
 }
+
+#jumbotron {
+  padding: 10px 10px 10px 10px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  background-color: rgba(200, 200, 200, 0.8);
+}
+
+#bgImage {
+    background-image: url(distrib/images/pattern.png);
+    background-repeat: repeat;
+    opacity: 0.3;
+    position: fixed;
+    height: 700px;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: -5;
+}
+
+
