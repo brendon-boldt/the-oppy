@@ -31,12 +31,13 @@ var TSOS;
             this.status = "loaded";
             // More?
         };
-        // is non-letter printing char
+        // Is non-letter printing char
         DeviceDriverKeyboard.prototype.isNLPChar = function (c) {
             return ((c >= 48) && (c <= 57)) // digits
                 || ((c >= 186) && (c <= 192))
                 || ((c >= 219) && (c <= 222));
         };
+        // Get the correct character corresponding to the pressed key
         DeviceDriverKeyboard.prototype.getMiscChar = function (c, isShifted) {
             if (isShifted) {
                 switch (c) {

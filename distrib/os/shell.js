@@ -160,6 +160,7 @@ var TSOS;
         Shell.prototype.shellPanic = function (args) {
             _Kernel.krnTrapError('User initiated kernel panic.');
         };
+        // Check if something is a printable character
         Shell.isValidChar = function (ch) {
             var c = ch.charCodeAt();
             return (c == 32) // Space
@@ -188,9 +189,11 @@ var TSOS;
         Shell.prototype.shellStatus = function (args) {
             $('#statusText').text(args.join(' '));
         };
+        // Make the OS fade away
         Shell.prototype.shellVanish = function () {
             $('body').addClass('os-hidden');
         };
+        // Make the OS reappear
         Shell.prototype.shellAppear = function () {
             $('body').removeClass('os-hidden');
         };
@@ -199,8 +202,8 @@ var TSOS;
         };
         Shell.prototype.shellDate = function () {
             var d = new Date();
-            var month = d.getMonth();
-            var day = d.getDay();
+            var month = d.getMonth() + 1;
+            var day = d.getDate();
             var str = d.getFullYear() + '-' +
                 (month < 10 ? '0' : '') + month + '-' +
                 (day < 10 ? '0' : '') + day;
@@ -208,7 +211,6 @@ var TSOS;
         };
         Shell.prototype.shellEcho = function (args) {
             _StdOut.putText(args.join(' '));
-            //_StdOut.advanceLine();
         };
         Shell.prototype.shellInvalidCommand = function () {
             _StdOut.putText("Invalid Command. ");
@@ -238,6 +240,7 @@ var TSOS;
                 _StdOut.putText("For what?");
             }
         };
+        // Print the version of the OS and the browser information
         Shell.prototype.shellVer = function (args) {
             _StdOut.putText(APP_NAME + " version " + APP_VERSION
                 + " on " + navigator.userAgent);
@@ -254,7 +257,6 @@ var TSOS;
             _StdOut.advanceLine();
             // Call Kernel shutdown routine.
             _Kernel.krnShutdown();
-            // TODO: Stop the final prompt from being displayed.  If possible.  Not a high priority.  (Damn OCD!)
         };
         Shell.prototype.shellCls = function (args) {
             _StdOut.clearScreen();

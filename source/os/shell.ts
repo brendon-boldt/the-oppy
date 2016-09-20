@@ -272,8 +272,8 @@ module TSOS {
 
         public shellDate(): void {
             let d = new Date();
-            let month: number = d.getMonth();
-            let day: number = d.getDay();
+            let month: number = d.getMonth() + 1;
+            let day: number = d.getDate();
             let str: string =
                 d.getFullYear() + '-' +
                 (month < 10 ? '0' :'') + month + '-' +

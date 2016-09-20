@@ -24,10 +24,11 @@ var TSOS;
         function Devices() {
             _hardwareClockID = -1;
         }
+        // Get the date and time in a nice ISO-style format
         Devices.getISODate = function () {
             var d = new Date();
-            var month = d.getMonth();
-            var day = d.getDay();
+            var month = d.getMonth() + 1;
+            var day = d.getDate();
             var hours = d.getHours();
             var minutes = d.getMinutes();
             var seconds = d.getSeconds();
@@ -44,15 +45,19 @@ var TSOS;
         Devices.hostClockPulse = function () {
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
+            // Update the clock once per second
             if (_OSclock % 10 == 0) {
                 $('#statusDate').text(Devices.getISODate());
             }
             if (_OSclock % 5 == 0) {
+                // Toggle the blinking cursor state every 0.5 seconds
                 if (_Status == 'idle' || _Status == 'processing')
                     _Console.toggleCursor(!_Console.cursorState);
                 else
                     _Console.toggleCursor(false);
                 // TODO Make a list of stati
+                // Remove the background color classes and readd correct
+                // one according to the status of the OS.
                 $('body').removeClass('bg-idle');
                 $('body').removeClass('bg-off');
                 $('body').removeClass('bg-processing');

@@ -66,6 +66,7 @@ var TSOS;
         // Host Events
         //
         Control.hostBtnStartOS_click = function (btn) {
+            // OS should be running normally now 
             _Status = 'idle';
             // Disable the (passed-in) start button...
             btn.disabled = true;

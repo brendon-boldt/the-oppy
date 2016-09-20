@@ -31,8 +31,8 @@ module TSOS {
         // Get the date and time in a nice ISO-style format
         public static getISODate(): string {
             let d = new Date();
-            let month = d.getMonth();
-            let day = d.getDay();
+            let month = d.getMonth()+1;
+            let day = d.getDate();
             let hours = d.getHours();
             let minutes = d.getMinutes();
             let seconds = d.getSeconds();

@@ -7,6 +7,14 @@
    <title>
       The Oppy
    </title>
+   <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js">
    </script>
@@ -38,13 +46,17 @@
 
 <body onload="onDocumentLoad()" class='bg-off'>
 
-<div id="divMain" style="width:100%;">
-
+  <div id="bgImage"></div>
+  <div id="jumbotron" class="jumbotron">
+    <div id='statusRow' class="row">
+      <div id='statusTitle' class='col-sm-2'>The Oppy</div>
+      <div id='statusText' class='col-sm-2'>[status]</div>
+      <div id='statusButtons' class='col-sm-6'>
    <div id="divButtonBar" style="margin:4px;">
       <input type="button"
              id = "btnStartOS"
              name="brnStartOS"
-             class="normal_button"
+             class="btn-success"
              value="Start"
              tabindex="0"
              onclick="TSOS.Control.hostBtnStartOS_click(this);">
@@ -52,7 +64,7 @@
       <input type="button"
              id = "btnHaltOS"
              name="brnHaltOS"
-             class="normal_button"
+             class="btn-danger"
              disabled="disabled"
              value="Halt"
              tabindex="1"
@@ -61,13 +73,27 @@
       <input type="button"
              id = "btnReset"
              name="brnReset"
-             class="normal_button"
+             class="btn-default"
              disabled="disabled"
              value="Reset"
              tabindex="2"
              onclick="TSOS.Control.hostBtnReset_click(this);">
    </div>
+      
+      
+      </div>
+      
 
+
+
+      <div id='statusDate' class='col-sm-2'>1970-01-01T00:00:00</div>
+    </div>
+  </div>
+
+<div id="divMain" style="width:100%;">
+
+
+   <!--
    <div id="divStatusBar">
      <div id="statusText" class="statusBox">
        [status]
@@ -76,6 +102,7 @@
        1970-01-01T00:00:00
      </div>
    </div>
+   -->
 
    <div id="divConsole" style="margin:4px; width: 500px; height:500px; float:left;">
       <canvas id="display"
@@ -91,7 +118,7 @@
          <br>
          <textarea name="taHostLog"
                    id  ="taHostLog"
-                   rows="26"
+                   rows="15"
                    cols="48"
          ></textarea>
       </label>
