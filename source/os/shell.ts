@@ -258,12 +258,12 @@ module TSOS {
 
         // Make the OS fade away
         public shellVanish(): void {
-          $('body').addClass('os-hidden');
+          $('#divMain').addClass('os-hidden');
         }
 
         // Make the OS reappear
         public shellAppear(): void {
-          $('body').removeClass('os-hidden');
+          $('#divMain').removeClass('os-hidden');
         }
 
         public shellWhereami(): void {

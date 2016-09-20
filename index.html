@@ -3,7 +3,6 @@
 <head>
    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
    <meta name="author"             content="Alan G. Labouseur" />
-   <link rel="stylesheet" href="tsos.css" type="text/css" media="screen" />
    <title>
       The Oppy
    </title>
@@ -18,6 +17,8 @@
 
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js">
    </script>
+
+   <link rel="stylesheet" href="tsos.css" type="text/css" media="screen" />
    <!-- Globals CONSTANTS and _Variables. Must included be first. -->
    <script type="text/javascript" src="distrib/globals.js"></script>
 
@@ -49,9 +50,9 @@
   <div id="bgImage"></div>
   <div id="jumbotron" class="jumbotron">
     <div id='statusRow' class="row">
-      <div id='statusTitle' class='col-sm-2'>The Oppy</div>
-      <div id='statusText' class='col-sm-2'>[status]</div>
-      <div id='statusButtons' class='col-sm-6'>
+      <div id='statusTitle' class='col-md-2'>The Oppy</div>
+      <div id='statusText' class='col-md-2'>[status]</div>
+      <div id='statusButtons' class='col-md-6'>
    <div id="divButtonBar" style="margin:4px;">
       <input type="button"
              id = "btnStartOS"
@@ -65,7 +66,7 @@
              id = "btnHaltOS"
              name="brnHaltOS"
              class="btn-danger"
-             disabled="disabled"
+             disabled="true"
              value="Halt"
              tabindex="1"
              onclick="TSOS.Control.hostBtnHaltOS_click(this);">
@@ -73,7 +74,7 @@
       <input type="button"
              id = "btnReset"
              name="brnReset"
-             class="btn-default"
+             class="btn-info"
              disabled="disabled"
              value="Reset"
              tabindex="2"
@@ -86,11 +87,11 @@
 
 
 
-      <div id='statusDate' class='col-sm-2'>1970-01-01T00:00:00</div>
+      <div id='statusDate' class='col-md-2'>1970-01-01T00:00:00</div>
     </div>
   </div>
 
-<div id="divMain" style="width:100%;">
+<div id="divMain" class='row' style="width:100%;">
 
 
    <!--
@@ -104,7 +105,7 @@
    </div>
    -->
 
-   <div id="divConsole" style="margin:4px; width: 500px; height:500px; float:left;">
+   <div id="divConsole" class='col-md-6'>
       <canvas id="display"
               width="500px"
               height="500px"
@@ -112,28 +113,31 @@
       </canvas>
    </div>
 
-   <div id="divLog" style="margin-left:520px;">
-      <label>
-         Host Log
-         <br>
-         <textarea name="taHostLog"
-                   id  ="taHostLog"
-                   rows="15"
-                   cols="48"
-         ></textarea>
-      </label>
-   </div>
+   <div class='col-md-4'>
+     <div class='panel panel-default'>
+       <div class='panel-title'>Host Log</div>
+       <div id="divLog" class="panel-body">
+             <textarea readonly name="taHostLog"
+                       id  ="taHostLog"
+                       style="width:100%"
+                       rows="12"
+             ></textarea>
+       </div>
+      </div>
 
-   <div id="divUserProgramInput" style="margin-left:520px;">
-      <label>
-         User Program Input
-         <br>
-         <textarea name="taProgramInput"
-                   id  ="taProgramInput"
-                   rows="8"
-                   cols="48"
-         ></textarea>
-      </label>
+
+     <div class='panel panel-default'>
+       <div class='panel-title'>User Program Input</div>
+       <div id="divUserProgramInput" class="panel-body">
+             <textarea name="taProgramInput"
+                       id  ="taProgramInput"
+                       cols="48"
+                       e
+                       style="width:100%"
+             ></textarea>
+       </div>
+     </div>
+
    </div>
 </div>
 

@@ -191,11 +191,11 @@ var TSOS;
         };
         // Make the OS fade away
         Shell.prototype.shellVanish = function () {
-            $('body').addClass('os-hidden');
+            $('#divMain').addClass('os-hidden');
         };
         // Make the OS reappear
         Shell.prototype.shellAppear = function () {
-            $('body').removeClass('os-hidden');
+            $('#divMain').removeClass('os-hidden');
         };
         Shell.prototype.shellWhereami = function () {
             _StdOut.putText(".");

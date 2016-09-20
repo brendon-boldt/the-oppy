@@ -13,6 +13,38 @@ body {
   width: 100%;
 }
 
+#divMain {
+  transition: 1s;
+  margin-left: auto;
+  margin-right: auto;
+  
+}
+  
+#divConsole {
+  text-align: right;
+}
+
+.panel-title {
+  padding: 2px;
+  background-color: rgba(255,255,255,0.7);
+}
+
+.panel-body {
+  background-color: #eee;
+}
+
+.panel-body textarea {
+  background-color: rgba(0,0,0,0);
+  border: none;
+  resize: none;
+}
+
+.panel {
+  background-color: rgba(0,0,0,0);
+  /*background-color: rgba(0,0,0,0);*/
+}
+
+
 .bg-off {
   background-color: #aaa;
 }
@@ -68,10 +100,11 @@ h3 {
   text-align: center;
 }
       
-.btn {
+input[disabled] {
+  background-color: #ccc;
 }
 
-.btn-success, .btn-danger, .btn-default {
+.btn-success, .btn-danger, .btn-info {
   border: none;
 }
 
@@ -83,7 +116,6 @@ h3 {
   margin-right: -10px;
   font-size: 18pt;
 }
-
 
 #statusTitle {
 }
