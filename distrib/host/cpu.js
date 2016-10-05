@@ -29,6 +29,7 @@ var TSOS;
             this.Yreg = Yreg;
             this.Zflag = Zflag;
             this.isExecuting = isExecuting;
+            this.coloredCells = [];
         }
         Cpu.prototype.init = function () {
             this.PC = 0;
@@ -38,8 +39,68 @@ var TSOS;
             this.Zflag = 0;
             this.isExecuting = false;
         };
+        Cpu.prototype.handleOpCode = function (oc) {
+            switch (oc) {
+                case 0xA9:
+                    this.Acc = _Memory.getByte(this.PC + 1);
+                    this.PC += 2;
+                    break;
+                case 0xAD:
+                    this.Acc = _Memory.getByte(_Memory.getByte(this.PC + 2) * 0x100
+                        + _Memory.getByte(this.PC + 1));
+                    this.PC += 3;
+                    break;
+                case 0x8D:
+                    break;
+                case 0x6D:
+                    break;
+                case 0xA2:
+                    break;
+                case 0xAE:
+                    break;
+                case 0xA0:
+                    break;
+                case 0xAC:
+                    break;
+                case 0xEA:
+                    this.PC++;
+                    break;
+                case 0x00:
+                    _Status = 'idle';
+                    this.isExecuting = false;
+                    break;
+                case 0xEC:
+                    break;
+                case 0xD0:
+                    break;
+                case 0xEE:
+                    break;
+                case 0xFF:
+                    break;
+            }
+        };
+        Cpu.prototype.startExecution = function (addr) {
+            // TODO check the address
+            this.PC = addr;
+            this.isExecuting = true;
+            _Status = 'processing';
+        };
+        Cpu.prototype.clearColors = function () {
+            for (var i = 0; i < this.coloredCells.length; i++) {
+                TSOS.Devices.hostSetMemCellColor(this.coloredCells[i]);
+            }
+            this.coloredCells = [];
+        };
         Cpu.prototype.cycle = function () {
             _Kernel.krnTrace('CPU cycle');
+            this.clearColors();
+            TSOS.Devices.hostUpdateCpuDisplay();
+            TSOS.Devices.hostSetMemCellColor(this.PC, 'green');
+            this.coloredCells.push(this.PC);
+            this.handleOpCode(_Memory.getByte(this.PC));
+            if (!this.isExecuting) {
+                this.clearColors();
+            }
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
         };

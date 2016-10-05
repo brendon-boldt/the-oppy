@@ -22,28 +22,70 @@ body {
   
 #divConsole {
   text-align: right;
+  padding: 10px;
+}
+
+#display {
+  background-color:#eee;
+  border: none;
+  cursor: default;
+  box-shadow: 0 0 0 10px rgba(255,255,255,0.7);
 }
 
 .panel-title {
-  padding: 2px;
+  padding-top: 10px;
+  padding-left: 10px;
   background-color: rgba(255,255,255,0.7);
+  font-weight: bold;
+  color: rgba(0,0,0,0.5);
 }
 
 .panel-body {
-  background-color: #eee;
+  padding-top: 2px;
+  padding: 10px;
+  background-color: rgba(255,255,255,0.7);
 }
 
-.panel-body textarea {
-  background-color: rgba(0,0,0,0);
-  border: none;
+.panel-body textarea, .panel-body table {
+  background-color: #eee;
+  //background-color: rgba(255,255,255,0.7);
+  border: 2px;
   resize: none;
+  font-family: monospace;
+  font-size: 10pt;
 }
 
 .panel {
   background-color: rgba(0,0,0,0);
   /*background-color: rgba(0,0,0,0);*/
 }
+  
+#divMemory {
+  height: 300px;
+  overflow: auto;
+}
 
+#tableMemory, #tablePCB, #tableCPU {
+  width: 100%;
+}
+
+td {
+  width: 20px;
+  text-align: center;
+  padding: 4px;
+}
+
+tr {
+  border: 1px solid #aaa;
+}
+
+th {
+  width: 20px;
+  text-align: center;
+  padding: 4px;
+  font-weight: bold;  
+  color: grey;
+}
 
 .bg-off {
   background-color: #aaa;
@@ -87,11 +129,6 @@ h3 {
   font-style: normal;
 }
 
-#display {
-  background-color:#eee;
-  border: 2px solid black;
-  cursor: default;
-}
 
 .footerText {
   color: black;
@@ -104,7 +141,7 @@ input[disabled] {
   background-color: #ccc;
 }
 
-.btn-success, .btn-danger, .btn-info {
+.btn-success, .btn-danger, .btn-info, .btn-warning {
   border: none;
 }
 

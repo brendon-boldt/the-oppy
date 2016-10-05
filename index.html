@@ -26,6 +26,7 @@
    <script type="text/javascript" src="distrib/host/control.js"></script>
    <script type="text/javascript" src="distrib/host/devices.js"></script>
    <script type="text/javascript" src="distrib/host/cpu.js"></script>
+   <script type="text/javascript" src="distrib/host/memory.js"></script>
 
    <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
    <script type="text/javascript" src="distrib/os/interrupt.js"></script>
@@ -48,6 +49,7 @@
 <body onload="onDocumentLoad()" class='bg-off'>
 
   <div id="bgImage"></div>
+
   <div id="jumbotron" class="jumbotron">
     <div id='statusRow' class="row">
       <div id='statusTitle' class='col-md-2'>The Oppy</div>
@@ -56,7 +58,6 @@
    <div id="divButtonBar" style="margin:4px;">
       <input type="button"
              id = "btnStartOS"
-             name="brnStartOS"
              class="btn-success"
              value="Start"
              tabindex="0"
@@ -64,7 +65,6 @@
 
       <input type="button"
              id = "btnHaltOS"
-             name="brnHaltOS"
              class="btn-danger"
              disabled="true"
              value="Halt"
@@ -73,12 +73,30 @@
 
       <input type="button"
              id = "btnReset"
-             name="brnReset"
              class="btn-info"
              disabled="disabled"
              value="Reset"
              tabindex="2"
              onclick="TSOS.Control.hostBtnReset_click(this);">
+
+      <input type="button"
+             id = "btnSSMode"
+             class="btn-danger"
+             style="margin-left:20px; width:145px; text-align: left;"
+             disabled="disabled"
+             data-toggle='button'
+             value="Single-Step: OFF"
+             tabindex="3"
+             onclick="TSOS.Control.hostBtnSSMode_click(this);">
+
+      <input type="button"
+             id = "btnStep"
+             class="btn-success"
+             disabled="disabled"
+             data-toggle='button'
+             value=">>"
+             tabindex="3"
+             onclick="TSOS.Control.hostBtnStep_click(this);">
    </div>
       
       
@@ -93,19 +111,7 @@
 
 <div id="divMain" class='row' style="width:100%;">
 
-
-   <!--
-   <div id="divStatusBar">
-     <div id="statusText" class="statusBox">
-       [status]
-     </div>
-     <div id="statusDate" class="statusBox">
-       1970-01-01T00:00:00
-     </div>
-   </div>
-   -->
-
-   <div id="divConsole" class='col-md-6'>
+   <div id="divConsole" class='col-md-5'>
       <canvas id="display"
               width="500px"
               height="500px"
@@ -113,17 +119,76 @@
       </canvas>
    </div>
 
-   <div class='col-md-4'>
+   <div class='col-md-3'>
+       <div class='panel panel-default'>
+            <div class='panel-title'>Memory</div>
+            <div class='panel-body'>
+                <div id='divMemory'>
+                 <table id  ="tableMemory"
+                 ></table>
+                </div>
+            </div>
+       </div>
+
+       <div class='panel panel-default'>
+            <div class='panel-title'>CPU</div>
+            <div class='panel-body'>
+                <div id='divCPU'>
+                    <table id  ="tableCPU">
+                    <tr>
+                        <th>PC</th>
+                        <th>IR</th>
+                        <th>Acc</th>
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>ZF</th>
+                    </tr>
+                    <tr>
+                        <td id='cpuPC'>--</td>
+                        <td id='cpuIR'>---</td>
+                        <td id='cpuAcc'>--</td>
+                        <td id='cpuX'>--</td>
+                        <td id='cpuY'>--</td>
+                        <td id='cpuZF'>-</td>
+                    </tr>
+                 </table>
+                </div>
+            </div>
+       </div>
+
+
+   </div>
+
+   <div class='col-md-3'>
      <div class='panel panel-default'>
        <div class='panel-title'>Host Log</div>
        <div id="divLog" class="panel-body">
              <textarea readonly name="taHostLog"
                        id  ="taHostLog"
                        style="width:100%"
-                       rows="12"
+                       rows="8"
              ></textarea>
        </div>
       </div>
+
+       <div class='panel panel-default'>
+            <div class='panel-title'>PCB</div>
+            <div class='panel-body'>
+                <div id='divPCB'>
+                 <table id  ="tablePCB">
+                    <tr>
+                        <th>PID</th>
+                        <th>PC</th>
+                        <th>IR</th>
+                        <th>Acc</th>
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>Z</th>
+                    </tr>
+                 </table>
+                </div>
+            </div>
+       </div>
 
 
      <div class='panel panel-default'>
@@ -131,10 +196,9 @@
        <div id="divUserProgramInput" class="panel-body">
              <textarea name="taProgramInput"
                        id  ="taProgramInput"
-                       cols="48"
-                       e
+                       rows='4'
                        style="width:100%"
-             ></textarea>
+             >AD 0F 00 00 00 00 00 00 00 00 00 00 00 00 00 66 fa</textarea>
        </div>
      </div>
 

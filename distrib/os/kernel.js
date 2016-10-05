@@ -66,8 +66,6 @@ var TSOS;
             this.krnTrace("end shutdown OS");
             if (_Status == 'idle')
                 _Status = 'off';
-            //$('body').removeClass('bg-idle');
-            //$('body').addClass('bg-off');
         };
         Kernel.prototype.krnOnCPUClockPulse = function () {
             /* This gets called from the host hardware simulation every time there is a hardware clock pulse.

@@ -45,6 +45,7 @@ var TSOS;
         Devices.hostClockPulse = function () {
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
+            Devices.hostUpdateCpuDisplay();
             // Update the clock once per second
             if (_OSclock % 10 == 0) {
                 $('#statusDate').text(Devices.getISODate());
@@ -72,7 +73,7 @@ var TSOS;
                     case 'error':
                         $('body').addClass('bg-error');
                         break;
-                    case 'proessing':
+                    case 'processing':
                         $('body').addClass('bg-processing');
                         break;
                     default:
@@ -81,6 +82,60 @@ var TSOS;
             }
             // Increment the hardware (host) clock.
             _OSclock++;
+        };
+        Devices.formatValue = function (num, padding) {
+            var str = num.toString(16).toUpperCase();
+            while (str.length < padding) {
+                str = '0' + str;
+            }
+            return str;
+        };
+        // At this point, the table is recreated instead of updated
+        Devices.hostUpdateMemDisplay = function () {
+            var html = '';
+            var memSize = _Memory.memSize;
+            var mem = _Memory.getBytes(0, memSize);
+            for (var i = 0; i < memSize; i++) {
+                if (i % Devices.rowSize == 0) {
+                    html += "<tr id='memRow" + Math.floor(i / Devices.rowSize) + "'><td>0x"
+                        + Devices.formatValue(i, 3)
+                        + "</td>";
+                }
+                html += "<td id='memCell" + i + "'>"
+                    + Devices.formatValue(mem[i], 2)
+                    + "</td>";
+                Devices.hostSetMemCellColor(i);
+                if (i % Devices.rowSize == Devices.rowSize - 1) {
+                    html += "</tr>";
+                }
+            }
+            $('#tableMemory').html(html);
+        };
+        Devices.hostSetMemCellColor = function (addr, color) {
+            if (color === void 0) { color = 'black'; }
+            $('#memCell' + addr).css('color', color);
+            if (color != 'black') {
+                $('#memCell' + addr).css('font-weight', 'bold');
+            }
+            else {
+                $('#memCell' + addr).css('font-weight', 'normal');
+            }
+        };
+        /*
+         *
+        this.PC = 0;
+        this.Acc = 0;
+        this.Xreg = 0;
+        this.Yreg = 0;
+        this.Zflag = 0;
+        this.isExecuting = false;
+         */
+        Devices.hostUpdateCpuDisplay = function () {
+            $('#cpuPC').html(Devices.formatValue(_CPU.PC, 3));
+            $('#cpuAcc').html(Devices.formatValue(_CPU.Acc, 2));
+            $('#cpuX').html(Devices.formatValue(_CPU.Xreg, 2));
+            $('#cpuY').html(Devices.formatValue(_CPU.Yreg, 2));
+            $('#cpuZF').html(_CPU.Zflag + '');
         };
         //
         // Keyboard Interrupt, a HARDWARE Interrupt Request. (See pages 560-561 in our text book.)
@@ -105,6 +160,7 @@ var TSOS;
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(KEYBOARD_IRQ, params));
             }
         };
+        Devices.rowSize = 0x8;
         return Devices;
     }());
     TSOS.Devices = Devices;

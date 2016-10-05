@@ -1,6 +1,5 @@
 ///<reference path="../globals.ts" />
 ///<reference path="../utils.ts" />
-///<reference path="../jquery.d.ts" />
 ///<reference path="shellCommand.ts" />
 ///<reference path="userCommand.ts" />
 /* ------------
@@ -25,6 +24,8 @@ var TSOS;
         Shell.prototype.init = function () {
             var sc;
             // Load the command list.
+            sc = new TSOS.ShellCommand(this.shellRun, "run", " <pid> - Runs the process specified by <pid>.");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellPanic, "panic", " - Initiates kernel panic.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellLoad, "load", " - Loads the user program in the text area.");
@@ -157,6 +158,10 @@ var TSOS;
         // Shell Command Functions.  Kinda not part of Shell() class exactly, but
         // called from here, so kept here to avoid violating the law of least astonishment.
         //
+        //
+        Shell.prototype.shellRun = function (args) {
+            _CPU.startExecution(0x0);
+        };
         Shell.prototype.shellPanic = function (args) {
             _Kernel.krnTrapError('User initiated kernel panic.');
         };
@@ -164,15 +169,37 @@ var TSOS;
         Shell.isValidChar = function (ch) {
             var c = ch.charCodeAt();
             return (c == 32) // Space
+                || (c == '\n'.charCodeAt(0))
                 || (c >= 48 && c <= 57) // Digits
                 || (c >= 97 && c <= 102) // Lowercase a-f
                 || (c >= 65 && c <= 70); // Uppercase A-F
         };
-        Shell.prototype.shellLoad = function () {
-            var text = $('#taProgramInput').val();
-            var valid = text.length != 0;
-            for (var i = 0; i < text.length; i++) {
-                valid = valid && Shell.isValidChar(text.charAt(i));
+        Shell.isHexDigit = function (ch) {
+            var c = ch.charCodeAt();
+            return (c >= 48 && c <= 57) // Digits
+                || (c >= 97 && c <= 102) // Lowercase a-f
+                || (c >= 65 && c <= 70); // Uppercase A-F
+        };
+        Shell.validateProgramInput = function (input) {
+            var valid = input.length != 0;
+            var opChars = [];
+            var firstDigit = true;
+            var isValidChar;
+            for (var i = 0; i < input.length; i++) {
+                isValidChar = Shell.isValidChar(input.charAt(i));
+                valid = valid && isValidChar;
+                // Count the number hex digits
+                if (isValidChar && Shell.isHexDigit(input[i])) {
+                    if (firstDigit) {
+                        opChars[opChars.length]
+                            = 0x10 * parseInt(input.charAt(i), 16);
+                        firstDigit = false;
+                    }
+                    else {
+                        opChars[opChars.length - 1] += parseInt(input.charAt(i), 16);
+                        firstDigit = true;
+                    }
+                }
             }
             if (valid) {
                 _StdOut.putText("User program validated.");
@@ -180,22 +207,35 @@ var TSOS;
             else {
                 _StdOut.putText("User program invalid.");
                 _StdOut.advanceLine();
-                if (text.length == 0)
+                if (input.length == 0)
                     _StdOut.putText("Input must be non-empty.");
+                else if (opChars.length > Shell.maxProgSize)
+                    _StdOut.putText("Program must be fewer than 256 bytes.");
                 else
                     _StdOut.putText("Allowed characters are: 0-9, a-f, A-F.");
+                opChars = [];
+            }
+            return opChars;
+        };
+        Shell.prototype.shellLoad = function () {
+            var text = TSOS.Control.hostGetUPI();
+            var opChars = Shell.validateProgramInput(text);
+            if (opChars.length != 0) {
+                console.log(opChars);
+                _Memory.setBytes(0, opChars);
+                TSOS.Devices.hostUpdateMemDisplay();
             }
         };
         Shell.prototype.shellStatus = function (args) {
-            $('#statusText').text(args.join(' '));
+            TSOS.Control.hostSetStatus(args.join(' '));
         };
         // Make the OS fade away
         Shell.prototype.shellVanish = function () {
-            $('#divMain').addClass('os-hidden');
+            TSOS.Control.hostToggleOSVisibility(false);
         };
         // Make the OS reappear
         Shell.prototype.shellAppear = function () {
-            $('#divMain').removeClass('os-hidden');
+            TSOS.Control.hostToggleOSVisibility(true);
         };
         Shell.prototype.shellWhereami = function () {
             _StdOut.putText(".");
@@ -253,7 +293,7 @@ var TSOS;
             }
         };
         Shell.prototype.shellShutdown = function (args) {
-            _StdOut.putText("Shutting down...");
+            //_StdOut.putText("Shutting down...");
             _StdOut.advanceLine();
             // Call Kernel shutdown routine.
             _Kernel.krnShutdown();
@@ -320,6 +360,7 @@ var TSOS;
                 _StdOut.putText("Usage: prompt <string>  Please supply a string.");
             }
         };
+        Shell.maxProgSize = 0x100;
         return Shell;
     }());
     TSOS.Shell = Shell;

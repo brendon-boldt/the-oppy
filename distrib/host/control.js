@@ -1,5 +1,6 @@
 ///<reference path="../globals.ts" />
 ///<reference path="../os/canvastext.ts" />
+///<reference path="../jquery.d.ts" />
 /* ------------
      Control.ts
 
@@ -65,19 +66,34 @@ var TSOS;
         //
         // Host Events
         //
+        Control.hostSetStatus = function (text) {
+            $('#statusText').text(text);
+        };
+        Control.hostToggleOSVisibility = function (visible) {
+            if (visible)
+                $('#divMain').removeClass('os-hidden');
+            else
+                $('#divMain').addClass('os-hidden');
+        };
+        Control.hostGetUPI = function () {
+            return $('#taProgramInput').val();
+        };
         Control.hostBtnStartOS_click = function (btn) {
             // OS should be running normally now 
             _Status = 'idle';
             // Disable the (passed-in) start button...
             btn.disabled = true;
             // .. enable the Halt and Reset buttons ...
-            document.getElementById("btnHaltOS").disabled = false;
-            document.getElementById("btnReset").disabled = false;
+            $('#btnHaltOS').prop('disabled', false);
+            $('#btnReset').prop('disabled', false);
+            $('#btnSSMode').prop('disabled', false);
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
             _CPU = new TSOS.Cpu(); // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
             _CPU.init(); //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+            _Memory = new TSOS.Memory();
+            TSOS.Devices.hostUpdateMemDisplay();
             // ... then set the host clock pulse ...
             _hardwareClockID = setInterval(TSOS.Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
             // .. and call the OS Kernel Bootstrap routine.
@@ -100,6 +116,24 @@ var TSOS;
             // That boolean parameter is the 'forceget' flag. When it is true it causes the page to always
             // be reloaded from the server. If it is false or not specified the browser may reload the
             // page from its cache, which is not what we want.
+        };
+        Control.hostBtnSSMode_click = function (btn) {
+            if (_SSMode == false) {
+                $('#btnSSMode').addClass('btn-success');
+                $('#btnSSMode').removeClass('btn-danger');
+                $('#btnSSMode').prop('value', 'Single-Step: ON');
+                $('#btnStep').prop('disabled', false);
+                _SSMode = true;
+            }
+            else {
+                $('#btnSSMode').addClass('btn-danger');
+                $('#btnSSMode').removeClass('btn-success');
+                $('#btnSSMode').prop('value', 'Single-Step: OFF');
+                $('#btnStep').prop('disabled', true);
+                _SSMode = false;
+            }
+        };
+        Control.hostBtnStep_click = function (btn) {
         };
         return Control;
     }());

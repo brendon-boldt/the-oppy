@@ -51,6 +51,7 @@ module TSOS {
         public static hostClockPulse(): void {
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
+            Devices.hostUpdateCpuDisplay();
 
             // Update the clock once per second
             if (_OSclock % 10 == 0) {
@@ -82,7 +83,7 @@ module TSOS {
                 case 'error':
                   $('body').addClass('bg-error');
                   break;
-                case 'proessing':
+                case 'processing':
                   $('body').addClass('bg-processing');
                   break;
                 default:
@@ -91,6 +92,65 @@ module TSOS {
             }
             // Increment the hardware (host) clock.
             _OSclock++;
+        }
+
+        private static formatValue(num: number, padding: number): string {
+            let str: string = num.toString(16).toUpperCase();
+            while (str.length < padding) {
+                str = '0' + str;
+            }
+            return str;
+        }
+
+        public static rowSize: number = 0x8;
+
+        // At this point, the table is recreated instead of updated
+        public static hostUpdateMemDisplay() {
+            let html:string = '';
+            let memSize = _Memory.memSize;
+            let mem: number[] = _Memory.getBytes(0, memSize);
+            for (let i = 0; i < memSize; i++) {
+                if (i % Devices.rowSize == 0) {
+                    html += "<tr id='memRow"+Math.floor(i/Devices.rowSize)+"'><td>0x"
+                        + Devices.formatValue(i, 3)
+                        + "</td>";    
+                }
+                html += "<td id='memCell"+i+"'>"
+                    + Devices.formatValue(mem[i], 2)
+                    + "</td>"; 
+                Devices.hostSetMemCellColor(i);
+                if (i % Devices.rowSize == Devices.rowSize-1) {
+                    html += "</tr>";
+                }
+            }
+            $('#tableMemory').html(html);
+        }
+
+        public static hostSetMemCellColor(addr: number,
+                color: string = 'black'): void {
+            $('#memCell'+addr).css('color', color);
+            if (color != 'black') {
+                $('#memCell'+addr).css('font-weight', 'bold');
+            } else {
+                $('#memCell'+addr).css('font-weight', 'normal');
+            }
+        }
+        
+        /*
+         *
+        this.PC = 0;
+        this.Acc = 0;
+        this.Xreg = 0;
+        this.Yreg = 0;
+        this.Zflag = 0;
+        this.isExecuting = false;
+         */
+        public static hostUpdateCpuDisplay() {
+            $('#cpuPC').html(Devices.formatValue(_CPU.PC, 3));            
+            $('#cpuAcc').html(Devices.formatValue(_CPU.Acc, 2));            
+            $('#cpuX').html(Devices.formatValue(_CPU.Xreg, 2));            
+            $('#cpuY').html(Devices.formatValue(_CPU.Yreg, 2));            
+            $('#cpuZF').html(_CPU.Zflag+'');            
         }
 
         //
