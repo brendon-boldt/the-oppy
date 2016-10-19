@@ -20,32 +20,33 @@
      ------------ */
 var TSOS;
 (function (TSOS) {
-    var Devices = (function () {
-        function Devices() {
+    class Devices {
+        constructor() {
             _hardwareClockID = -1;
         }
         // Get the date and time in a nice ISO-style format
-        Devices.getISODate = function () {
-            var d = new Date();
-            var month = d.getMonth() + 1;
-            var day = d.getDate();
-            var hours = d.getHours();
-            var minutes = d.getMinutes();
-            var seconds = d.getSeconds();
+        static getISODate() {
+            let d = new Date();
+            let month = d.getMonth() + 1;
+            let day = d.getDate();
+            let hours = d.getHours();
+            let minutes = d.getMinutes();
+            let seconds = d.getSeconds();
             return d.getFullYear() + "-" +
                 (month < 10 ? '0' : '') + month + "-" +
                 (day < 10 ? '0' : '') + day + "T" +
                 (hours < 10 ? '0' : '') + hours + ":" +
                 (minutes < 10 ? '0' : '') + minutes + ":" +
                 (seconds < 10 ? '0' : '') + seconds;
-        };
+        }
         //
         // Hardware/Host Clock Pulse
         //
-        Devices.hostClockPulse = function () {
+        static hostClockPulse() {
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
             Devices.hostUpdateCpuDisplay();
+            //Devices.hostUpdateMemDisplay();
             // Update the clock once per second
             if (_OSclock % 10 == 0) {
                 $('#statusDate').text(Devices.getISODate());
@@ -82,20 +83,20 @@ var TSOS;
             }
             // Increment the hardware (host) clock.
             _OSclock++;
-        };
-        Devices.formatValue = function (num, padding) {
-            var str = num.toString(16).toUpperCase();
+        }
+        static formatValue(num, padding) {
+            let str = num.toString(16).toUpperCase();
             while (str.length < padding) {
                 str = '0' + str;
             }
             return str;
-        };
+        }
         // At this point, the table is recreated instead of updated
-        Devices.hostUpdateMemDisplay = function () {
-            var html = '';
-            var memSize = _Memory.memSize;
-            var mem = _Memory.getBytes(0, memSize);
-            for (var i = 0; i < memSize; i++) {
+        static hostUpdateMemDisplay() {
+            let html = '';
+            let memSize = _Memory.getMemSize();
+            let mem = _Memory.getBytes(0, memSize);
+            for (let i = 0; i < memSize; i++) {
                 if (i % Devices.rowSize == 0) {
                     html += "<tr id='memRow" + Math.floor(i / Devices.rowSize) + "'><td>0x"
                         + Devices.formatValue(i, 3)
@@ -110,9 +111,8 @@ var TSOS;
                 }
             }
             $('#tableMemory').html(html);
-        };
-        Devices.hostSetMemCellColor = function (addr, color) {
-            if (color === void 0) { color = 'black'; }
+        }
+        static hostSetMemCellColor(addr, color = 'black') {
             $('#memCell' + addr).css('color', color);
             if (color != 'black') {
                 $('#memCell' + addr).css('font-weight', 'bold');
@@ -120,7 +120,7 @@ var TSOS;
             else {
                 $('#memCell' + addr).css('font-weight', 'normal');
             }
-        };
+        }
         /*
          *
         this.PC = 0;
@@ -130,26 +130,26 @@ var TSOS;
         this.Zflag = 0;
         this.isExecuting = false;
          */
-        Devices.hostUpdateCpuDisplay = function () {
+        static hostUpdateCpuDisplay() {
             $('#cpuPC').html(Devices.formatValue(_CPU.PC, 3));
             $('#cpuAcc').html(Devices.formatValue(_CPU.Acc, 2));
             $('#cpuX').html(Devices.formatValue(_CPU.Xreg, 2));
             $('#cpuY').html(Devices.formatValue(_CPU.Yreg, 2));
             $('#cpuZF').html(_CPU.Zflag + '');
-        };
+        }
         //
         // Keyboard Interrupt, a HARDWARE Interrupt Request. (See pages 560-561 in our text book.)
         //
-        Devices.hostEnableKeyboardInterrupt = function () {
+        static hostEnableKeyboardInterrupt() {
             // Listen for key press (keydown, actually) events in the Document
             // and call the simulation processor, which will in turn call the
             // OS interrupt handler.
             document.addEventListener("keydown", Devices.hostOnKeypress, false);
-        };
-        Devices.hostDisableKeyboardInterrupt = function () {
+        }
+        static hostDisableKeyboardInterrupt() {
             document.removeEventListener("keydown", Devices.hostOnKeypress, false);
-        };
-        Devices.hostOnKeypress = function (event) {
+        }
+        static hostOnKeypress(event) {
             // The canvas element CAN receive focus if you give it a tab index, which we have.
             // Check that we are processing keystrokes only from the canvas's id (as set in index.html).
             if (event.target.id === "display") {
@@ -159,9 +159,8 @@ var TSOS;
                 // Enqueue this interrupt on the kernel interrupt queue so that it gets to the Interrupt handler.
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(KEYBOARD_IRQ, params));
             }
-        };
-        Devices.rowSize = 0x8;
-        return Devices;
-    }());
+        }
+    }
+    Devices.rowSize = 0x8;
     TSOS.Devices = Devices;
 })(TSOS || (TSOS = {}));

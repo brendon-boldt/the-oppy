@@ -1,10 +1,5 @@
 ///<reference path="../globals.ts" />
 ///<reference path="deviceDriver.ts" />
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 /* ----------------------------------
    DeviceDriverKeyboard.ts
 
@@ -15,30 +10,29 @@ var __extends = (this && this.__extends) || function (d, b) {
 var TSOS;
 (function (TSOS) {
     // Extends DeviceDriver
-    var DeviceDriverKeyboard = (function (_super) {
-        __extends(DeviceDriverKeyboard, _super);
-        function DeviceDriverKeyboard() {
+    class DeviceDriverKeyboard extends TSOS.DeviceDriver {
+        constructor() {
             // Override the base method pointers.
             // The code below cannot run because "this" can only be
             // accessed after calling super.
             //super(this.krnKbdDriverEntry, this.krnKbdDispatchKeyPress);
-            _super.call(this);
+            super();
             this.driverEntry = this.krnKbdDriverEntry;
             this.isr = this.krnKbdDispatchKeyPress;
         }
-        DeviceDriverKeyboard.prototype.krnKbdDriverEntry = function () {
+        krnKbdDriverEntry() {
             // Initialization routine for this, the kernel-mode Keyboard Device Driver.
             this.status = "loaded";
             // More?
-        };
+        }
         // Is non-letter printing char
-        DeviceDriverKeyboard.prototype.isNLPChar = function (c) {
+        isNLPChar(c) {
             return ((c >= 48) && (c <= 57)) // digits
                 || ((c >= 186) && (c <= 192))
                 || ((c >= 219) && (c <= 222));
-        };
+        }
         // Get the correct character corresponding to the pressed key
-        DeviceDriverKeyboard.prototype.getMiscChar = function (c, isShifted) {
+        getMiscChar(c, isShifted) {
             if (isShifted) {
                 switch (c) {
                     case 48:
@@ -118,8 +112,8 @@ var TSOS;
                 }
             }
             return '';
-        };
-        DeviceDriverKeyboard.prototype.getSpecialKey = function (c) {
+        }
+        getSpecialKey(c) {
             switch (c) {
                 case 8:
                     return 'backspace';
@@ -134,8 +128,8 @@ var TSOS;
                 case 40:
                     return 'down';
             }
-        };
-        DeviceDriverKeyboard.prototype.krnKbdDispatchKeyPress = function (params) {
+        }
+        krnKbdDispatchKeyPress(params) {
             // Parse the params.    TODO: Check that the params are valid and osTrapError if not.
             var keyCode = params[0];
             var isShifted = params[1];
@@ -166,8 +160,7 @@ var TSOS;
                 if (chr)
                     _KernelInputQueue.enqueue(chr);
             }
-        };
-        return DeviceDriverKeyboard;
-    }(TSOS.DeviceDriver));
+        }
+    }
     TSOS.DeviceDriverKeyboard = DeviceDriverKeyboard;
 })(TSOS || (TSOS = {}));

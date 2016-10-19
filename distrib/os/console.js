@@ -9,17 +9,8 @@
      ------------ */
 var TSOS;
 (function (TSOS) {
-    var Console = (function () {
-        function Console(currentFont, currentFontSize, currentXPosition, currentYPosition, cursorState, commandHistory, consoleBuffer, inputBuffer, commandIndex) {
-            if (currentFont === void 0) { currentFont = _DefaultFontFamily; }
-            if (currentFontSize === void 0) { currentFontSize = _DefaultFontSize; }
-            if (currentXPosition === void 0) { currentXPosition = 0; }
-            if (currentYPosition === void 0) { currentYPosition = _DefaultFontSize; }
-            if (cursorState === void 0) { cursorState = false; }
-            if (commandHistory === void 0) { commandHistory = []; }
-            if (consoleBuffer === void 0) { consoleBuffer = ""; }
-            if (inputBuffer === void 0) { inputBuffer = ""; }
-            if (commandIndex === void 0) { commandIndex = -1; }
+    class Console {
+        constructor(currentFont = _DefaultFontFamily, currentFontSize = _DefaultFontSize, currentXPosition = 0, currentYPosition = _DefaultFontSize, cursorState = false, commandHistory = [], consoleBuffer = "", inputBuffer = "", commandIndex = -1) {
             this.currentFont = currentFont;
             this.currentFontSize = currentFontSize;
             this.currentXPosition = currentXPosition;
@@ -38,42 +29,42 @@ var TSOS;
                 .fontDescent(this.currentFont, this.currentFontSize)
                 + _DefaultFontSize;
         }
-        Console.prototype.init = function () {
+        init() {
             this.clearScreen();
             this.resetXY();
-        };
-        Console.prototype.clearScreen = function () {
+        }
+        clearScreen() {
             this.consoleBuffer = "";
             _DrawingContext.clearRect(0, 0, _Canvas.width, _Canvas.height);
-        };
-        Console.prototype.resetXY = function () {
+        }
+        resetXY() {
             this.currentXPosition = 0;
             this.currentYPosition = this.currentFontSize;
-        };
+        }
         // Only clears the canvas; not the actual buffer
-        Console.prototype.clearUserInput = function () {
-            var tempBuffer = this.inputBuffer;
+        clearUserInput() {
+            let tempBuffer = this.inputBuffer;
             while (this.inputBuffer.length > 0) {
                 this.backspaceText();
                 this.inputBuffer = this.inputBuffer
                     .substring(0, this.inputBuffer.length - 1);
             }
             this.inputBuffer = tempBuffer;
-        };
+        }
         // Get array of possible commands based on the current
         // input buffer; this array will be printed on the console
-        Console.prototype.getTabArray = function (str) {
-            var results = [];
-            var cl = _OsShell.commandList;
-            for (var i = 0; i < cl.length; i++) {
+        getTabArray(str) {
+            let results = [];
+            let cl = _OsShell.commandList;
+            for (let i = 0; i < cl.length; i++) {
                 if (cl[i].command.indexOf(str) === 0) {
                     results.push(cl[i].command);
                 }
             }
             return results;
-        };
+        }
         // Get previous command; "historic" sounds better
-        Console.prototype.getHistoricCommand = function () {
+        getHistoricCommand() {
             if (this.commandHistory.length == 0)
                 return "";
             if (this.commandIndex == -2) {
@@ -87,16 +78,16 @@ var TSOS;
                 return "";
             }
             return this.commandHistory[this.commandIndex];
-        };
+        }
         // This had more code in it at one point, but I figured the
         // legacy approach was better, so I just left it alone.
-        Console.prototype.isChar = function (chr) {
+        isChar(chr) {
             return chr.length == 1;
-        };
-        Console.prototype.handleInput = function () {
+        }
+        handleInput() {
             while (_KernelInputQueue.getSize() > 0) {
                 // The input queue returns strings -- now to parse them
-                var chr = _KernelInputQueue.dequeue();
+                let chr = _KernelInputQueue.dequeue();
                 if (chr === 'enter') {
                     _OsShell.handleInput(this.inputBuffer);
                     this.commandHistory.push(this.inputBuffer);
@@ -108,10 +99,10 @@ var TSOS;
                     this.inputBuffer = this.inputBuffer.substring(0, this.inputBuffer.length - 1);
                 }
                 else if (chr === 'tab') {
-                    var tempBuffer = this.inputBuffer;
+                    let tempBuffer = this.inputBuffer;
                     // Erase the text of the user input and redraw it
                     // with the tab completed command.
-                    var results = this.getTabArray(this.inputBuffer);
+                    let results = this.getTabArray(this.inputBuffer);
                     if (results.length == 1) {
                         this.clearUserInput();
                         this.inputBuffer = results[0];
@@ -146,19 +137,19 @@ var TSOS;
                     this.inputBuffer += ' ';
                 }
             }
-        };
-        Console.prototype.backspaceText = function () {
+        }
+        backspaceText() {
             // Remove one character from the input buffer
-            var text = this.inputBuffer.charAt(this.inputBuffer.length - 1);
+            let text = this.inputBuffer.charAt(this.inputBuffer.length - 1);
             // Width of the character to be removed
-            var xOffset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
+            let xOffset = _DrawingContext.measureText(this.currentFont, this.currentFontSize, text);
             this.currentXPosition = this.currentXPosition - xOffset;
             // If the backspace spans a linebreak
             if (this.currentXPosition < 0) {
                 this.currentYPosition -= this.lineSize;
-                var lines = this.consoleBuffer.split("\n");
-                var length_1 = _DrawingContext.measureText(this.currentFont, this.currentFontSize, lines[lines.length - 2]) - xOffset;
-                this.currentXPosition = length_1;
+                let lines = this.consoleBuffer.split("\n");
+                let length = _DrawingContext.measureText(this.currentFont, this.currentFontSize, lines[lines.length - 2]) - xOffset;
+                this.currentXPosition = length;
             }
             // Bounds checking here
             // ^^ I think I do that
@@ -170,8 +161,8 @@ var TSOS;
             else
                 this.consoleBuffer = this.consoleBuffer
                     .substring(0, this.consoleBuffer.length - 1);
-        };
-        Console.prototype.putText = function (text) {
+        }
+        putText(text) {
             // Interpret newlines properly
             if (text == "\n") {
                 this.advanceLine();
@@ -186,8 +177,8 @@ var TSOS;
                         this.putText(text);
                     }
                     else {
-                        var lines = this.lineWrapText(text);
-                        for (var i = 0; i < lines.length; i++) {
+                        let lines = this.lineWrapText(text);
+                        for (let i = 0; i < lines.length; i++) {
                             if (lines[i] == "")
                                 continue;
                             this.putText(lines[i]);
@@ -205,15 +196,15 @@ var TSOS;
                     this.consoleBuffer += text;
                 }
             }
-        };
+        }
         // To handle line breaking
-        Console.prototype.lineWrapText = function (text) {
+        lineWrapText(text) {
             if (this.currentXPosition > _DisplayXRes) {
             }
-            var localX = this.currentXPosition;
-            var lines = [];
-            var i = 0;
-            var line = text;
+            let localX = this.currentXPosition;
+            let lines = [];
+            let i = 0;
+            let line = text;
             // Iterate through the string to be printed and insert newlines
             // where needed.
             while (i < line.length) {
@@ -232,8 +223,8 @@ var TSOS;
                 lines[0] = "";
             }
             return lines;
-        };
-        Console.prototype.advanceLine = function () {
+        }
+        advanceLine() {
             this.toggleCursor(false);
             this.currentXPosition = 0;
             this.currentYPosition += this.lineSize;
@@ -244,21 +235,21 @@ var TSOS;
             // If the new line goes past the bottom of the screen
             if (this.currentYPosition > _DisplayYRes) {
                 // Redraw the screen accept for the top line
-                var tempBuffer = this.consoleBuffer.substring(this.consoleBuffer.indexOf("\n") + 1);
+                let tempBuffer = this.consoleBuffer.substring(this.consoleBuffer.indexOf("\n") + 1);
                 this.clearScreen();
                 this.resetXY();
-                for (var i = 0; i < tempBuffer.length; i++) {
+                for (let i = 0; i < tempBuffer.length; i++) {
                     this.putText(tempBuffer.charAt(i));
                 }
                 this.consoleBuffer = tempBuffer;
             }
-        };
+        }
         // Toggle the state of the blinking cursor
-        Console.prototype.toggleCursor = function (state) {
-            var x = this.currentXPosition;
-            var y = this.currentYPosition - _DefaultFontSize;
-            var xSize = 10;
-            var ySize = this.fontHeight;
+        toggleCursor(state) {
+            let x = this.currentXPosition;
+            let y = this.currentYPosition - _DefaultFontSize;
+            let xSize = 10;
+            let ySize = this.fontHeight;
             if (state) {
                 _DrawingContext.strokeStyle = 'rgba(0,0,0,0)';
                 // Make the fill slightly smaller so it is cleared completely
@@ -269,8 +260,7 @@ var TSOS;
                 _DrawingContext.clearRect(x, y, xSize, ySize);
                 this.cursorState = false;
             }
-        };
-        return Console;
-    }());
+        }
+    }
     TSOS.Console = Console;
 })(TSOS || (TSOS = {}));

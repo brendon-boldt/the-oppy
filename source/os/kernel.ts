@@ -41,20 +41,14 @@ module TSOS {
             _krnKeyboardDriver.driverEntry();                    // Call the driverEntry() initialization routine.
             this.krnTrace(_krnKeyboardDriver.status);
 
-            //
-            // ... more?
-            //
-
             // Enable the OS Interrupts.  (Not the CPU clock interrupt, as that is done in the hardware sim.)
             this.krnTrace("Enabling the interrupts.");
             this.krnEnableInterrupts();
 
-            // Launch the shell.
             this.krnTrace("Creating and Launching the shell.");
             _OsShell = new Shell();
             _OsShell.init();
 
-            // Finally, initiate student testing protocol.
             if (_GLaDOS) {
                 _GLaDOS.afterStartup();
             }
@@ -68,10 +62,6 @@ module TSOS {
             // ... Disable the Interrupts.
             this.krnTrace("Disabling the interrupts.");
             this.krnDisableInterrupts();
-            //
-            // Unload the Device Drivers?
-            // More?
-            //
             this.krnTrace("end shutdown OS");
             if (_Status == 'idle')
               _Status = 'off';
@@ -80,20 +70,16 @@ module TSOS {
 
 
         public krnOnCPUClockPulse() {
-            /* This gets called from the host hardware simulation every time there is a hardware clock pulse.
-               This is NOT the same as a TIMER, which causes an interrupt and is handled like other interrupts.
-               This, on the other hand, is the clock pulse from the hardware / VM / host that tells the kernel
-               that it has to look for interrupts and process them if it finds any.                           */
-
-            // Check for an interrupt, are any. Page 560
             if (_KernelInterruptQueue.getSize() > 0) {
-                // Process the first interrupt on the interrupt queue.
-                // TODO: Implement a priority queue based on the IRQ number/id to enforce interrupt priority.
+                // TODO: Implement a priority queue based on the IRQ
+                // number/id to enforce interrupt priority.
                 var interrupt = _KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
-            } else if (_CPU.isExecuting) { // If there are no interrupts then run one CPU cycle if there is anything being processed. {
+            } else if (_CPU.isExecuting
+                      && (!_SSMode || _NextStep)) {
+                _NextStep = false;
                 _CPU.cycle();
-            } else {                      // If there are no interrupts and there is nothing being executed then just be idle. {
+            } else {
                 this.krnTrace("Idle");
             }
         }
@@ -115,8 +101,8 @@ module TSOS {
         }
 
         public krnInterruptHandler(irq, params) {
-            // This is the Interrupt Handler Routine.  See pages 8 and 560.
-            // Trace our entrance here so we can compute Interrupt Latency by analyzing the log file later on. Page 766.
+            // Trace our entrance here so we can compute Interrupt
+            // Latency by analyzing the log file later on. Page 766.
             this.krnTrace("Handling IRQ~" + irq);
 
             // Invoke the requested Interrupt Service Routine via Switch/Case rather than an Interrupt Vector.
@@ -130,6 +116,9 @@ module TSOS {
                 case KEYBOARD_IRQ:
                     _krnKeyboardDriver.isr(params);   // Kernel mode device driver
                     _StdIn.handleInput();
+                    break;
+                case TERM_IRQ:
+                    _PCB.terminateProcess();
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");

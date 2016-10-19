@@ -4,17 +4,20 @@
 module TSOS {
 export class Memory { 
 
+    public static defaultMemorySize = 0x200;
+
     constructor(
-        private bytes: number[] = Array(0x500)
+        private bytes: number[] = Array(Memory.defaultMemorySize)
     ) {
-        this.memSize = bytes.length;
-        for (let i = 0; i < this.memSize; i++) {
+        for (let i = 0; i < this.bytes.length; i++) {
             if (this.bytes[i] == undefined)
                 this.bytes[i] = 0x0;
         }
     }
 
-    public memSize: number;
+    public getMemSize(): number {
+        return this.bytes.length;  
+    } 
 
     private checkAddr(addr: number): boolean {
         return addr < this.bytes.length && addr >= 0;

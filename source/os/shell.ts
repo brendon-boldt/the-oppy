@@ -32,6 +32,11 @@ module TSOS {
 
 
             // Load the command list.
+            sc = new ShellCommand(this.shellRunall,
+                                  "runall",
+                                  " - Runs all loaded processes.");
+            this.commandList[this.commandList.length] = sc;
+
             sc = new ShellCommand(this.shellRun,
                                   "run",
                                   " <pid> - Runs the process specified by <pid>.");
@@ -226,13 +231,25 @@ module TSOS {
         //
         //
 
-        public shellRun(args: string[]): void {
-            _CPU.startExecution(0x0);
+        public shellRunall(): void {
+            _PCB.runAll();
         }
 
-        public shellPanic(args: string[]): void {
-          _Kernel.krnTrapError('User initiated kernel panic.');
+        public shellRun(args: string[]): void {
+            let pid = parseInt(args[0]);
+            if (isNaN(pid)) {
+                _StdOut.putText("PID must be a number.");
+                return;
+            }
+            let res = _PCB.isReady(pid);
+            if (res) {
+                _PCB.runProcess(pid);
+            } else {
+                // TODO make error more specific
+                _StdOut.putText("Process " + pid + " cannot be run.");
+            }
         }
+
 
         // Check if something is a printable character
         private static isValidChar(ch): boolean {
@@ -274,7 +291,7 @@ module TSOS {
                 }
             }
             if (valid) {
-                _StdOut.putText("User program validated.");
+                //_StdOut.putText("User program validated.");
             } else {
                 _StdOut.putText("User program invalid.");
                 _StdOut.advanceLine();
@@ -293,10 +310,19 @@ module TSOS {
             let text: string = TSOS.Control.hostGetUPI();
             let opChars: number[] = Shell.validateProgramInput(text);
             if (opChars.length != 0) {
-                console.log(opChars);
-                _Memory.setBytes(0, opChars);
+                //_Memory.setBytes(0, opChars);
+                let pid = _PCB.loadProcess(opChars);
+                if (pid != -1) {
+                    _StdOut.putText("Program loaded with PID " + pid); 
+                } else {
+                    _StdOut.putText("An error occurred while loading the program."); 
+                }
                 TSOS.Devices.hostUpdateMemDisplay();
             }
+        }
+
+        public shellPanic(args: string[]): void {
+          _Kernel.krnTrapError('User initiated kernel panic.');
         }
 
         public shellStatus(args: string[]): void {

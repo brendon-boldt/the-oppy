@@ -1,32 +1,33 @@
 ///<reference path="../globals.ts" />
 var TSOS;
 (function (TSOS) {
-    var Memory = (function () {
-        function Memory(bytes) {
-            if (bytes === void 0) { bytes = Array(0x500); }
+    class Memory {
+        constructor(bytes = Array(Memory.defaultMemorySize)) {
             this.bytes = bytes;
-            this.memSize = bytes.length;
-            for (var i = 0; i < this.memSize; i++) {
+            for (let i = 0; i < this.bytes.length; i++) {
                 if (this.bytes[i] == undefined)
                     this.bytes[i] = 0x0;
             }
         }
-        Memory.prototype.checkAddr = function (addr) {
+        getMemSize() {
+            return this.bytes.length;
+        }
+        checkAddr(addr) {
             return addr < this.bytes.length && addr >= 0;
-        };
-        Memory.prototype.checkValue = function (value) {
+        }
+        checkValue(value) {
             return value >= 0x0 && value <= 0xff;
-        };
+        }
         // TODO Raise error upon incorrect address passed
-        Memory.prototype.getByte = function (addr) {
+        getByte(addr) {
             if (this.checkAddr(addr))
                 return this.bytes[addr];
             else {
                 alert('This will be an error');
                 return 0x0;
             }
-        };
-        Memory.prototype.getBytes = function (addr, size) {
+        }
+        getBytes(addr, size) {
             if (this.checkAddr(addr) && this.checkAddr(addr + size - 1)) {
                 return this.bytes.slice(addr, size);
             }
@@ -34,9 +35,9 @@ var TSOS;
                 alert('This will be an error');
                 return [0x0];
             }
-        };
+        }
         // TODO Raise error upon incorrect address passed
-        Memory.prototype.setByte = function (addr, value) {
+        setByte(addr, value) {
             if (!this.checkValue(value))
                 alert('This will be an error');
             if (this.checkAddr(addr)) {
@@ -46,22 +47,22 @@ var TSOS;
             else {
                 return false;
             }
-        };
+        }
         // TODO Raise error upon incorrect address passed
-        Memory.prototype.setBytes = function (addr, values) {
+        setBytes(addr, values) {
             if (!this.checkAddr(addr + values.length - 1)) {
                 alert('error');
                 return;
             }
-            for (var i = 0; i < values.length; i++) {
+            for (let i = 0; i < values.length; i++) {
                 if (!this.checkValue(values[i])) {
                     alert('error');
                     return;
                 }
                 this.bytes[addr + i] = values[i];
             }
-        };
-        return Memory;
-    }());
+        }
+    }
+    Memory.defaultMemorySize = 0x200;
     TSOS.Memory = Memory;
 })(TSOS || (TSOS = {}));

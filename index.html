@@ -27,6 +27,8 @@
    <script type="text/javascript" src="distrib/host/devices.js"></script>
    <script type="text/javascript" src="distrib/host/cpu.js"></script>
    <script type="text/javascript" src="distrib/host/memory.js"></script>
+   <script type="text/javascript" src="distrib/client/mmu.js"></script>
+   <script type="text/javascript" src="distrib/client/pcb.js"></script>
 
    <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
    <script type="text/javascript" src="distrib/os/interrupt.js"></script>
@@ -178,6 +180,7 @@
                  <table id  ="tablePCB">
                     <tr>
                         <th>PID</th>
+                        <th>State</th>
                         <th>PC</th>
                         <th>IR</th>
                         <th>Acc</th>

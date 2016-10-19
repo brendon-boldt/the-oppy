@@ -15,14 +15,8 @@
      ------------ */
 var TSOS;
 (function (TSOS) {
-    var Cpu = (function () {
-        function Cpu(PC, Acc, Xreg, Yreg, Zflag, isExecuting) {
-            if (PC === void 0) { PC = 0; }
-            if (Acc === void 0) { Acc = 0; }
-            if (Xreg === void 0) { Xreg = 0; }
-            if (Yreg === void 0) { Yreg = 0; }
-            if (Zflag === void 0) { Zflag = 0; }
-            if (isExecuting === void 0) { isExecuting = false; }
+    class Cpu {
+        constructor(PC = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, isExecuting = false) {
             this.PC = PC;
             this.Acc = Acc;
             this.Xreg = Xreg;
@@ -31,21 +25,22 @@ var TSOS;
             this.isExecuting = isExecuting;
             this.coloredCells = [];
         }
-        Cpu.prototype.init = function () {
+        init() {
             this.PC = 0;
             this.Acc = 0;
             this.Xreg = 0;
             this.Yreg = 0;
             this.Zflag = 0;
             this.isExecuting = false;
-        };
-        Cpu.prototype.handleOpCode = function (oc) {
+        }
+        handleOpCode(oc) {
             switch (oc) {
                 case 0xA9:
                     this.Acc = _Memory.getByte(this.PC + 1);
                     this.PC += 2;
                     break;
                 case 0xAD:
+                    // TODO fix memory access
                     this.Acc = _Memory.getByte(_Memory.getByte(this.PC + 2) * 0x100
                         + _Memory.getByte(this.PC + 1));
                     this.PC += 3;
@@ -68,6 +63,7 @@ var TSOS;
                 case 0x00:
                     _Status = 'idle';
                     this.isExecuting = false;
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, null));
                     break;
                 case 0xEC:
                     break;
@@ -78,20 +74,20 @@ var TSOS;
                 case 0xFF:
                     break;
             }
-        };
-        Cpu.prototype.startExecution = function (addr) {
+        }
+        startExecution(addr) {
             // TODO check the address
             this.PC = addr;
             this.isExecuting = true;
             _Status = 'processing';
-        };
-        Cpu.prototype.clearColors = function () {
-            for (var i = 0; i < this.coloredCells.length; i++) {
+        }
+        clearColors() {
+            for (let i = 0; i < this.coloredCells.length; i++) {
                 TSOS.Devices.hostSetMemCellColor(this.coloredCells[i]);
             }
             this.coloredCells = [];
-        };
-        Cpu.prototype.cycle = function () {
+        }
+        cycle() {
             _Kernel.krnTrace('CPU cycle');
             this.clearColors();
             TSOS.Devices.hostUpdateCpuDisplay();
@@ -103,8 +99,7 @@ var TSOS;
             }
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
-        };
-        return Cpu;
-    }());
+        }
+    }
     TSOS.Cpu = Cpu;
 })(TSOS || (TSOS = {}));

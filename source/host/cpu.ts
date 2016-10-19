@@ -44,6 +44,7 @@ module TSOS {
                     this.PC += 2;
                     break;
                 case 0xAD: // Load acc from memory
+                    // TODO fix memory access
                     this.Acc = _Memory.getByte(
                         _Memory.getByte(this.PC+2)*0x100
                         + _Memory.getByte(this.PC+1));
@@ -67,6 +68,7 @@ module TSOS {
                 case 0x00: // Halt
                     _Status = 'idle';
                     this.isExecuting = false;
+                    _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, null));
                     break;
                 case 0xEC:
                     break;

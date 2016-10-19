@@ -52,6 +52,7 @@ module TSOS {
             // Call the kernel clock pulse event handler.
             _Kernel.krnOnCPUClockPulse();
             Devices.hostUpdateCpuDisplay();
+            //Devices.hostUpdateMemDisplay();
 
             // Update the clock once per second
             if (_OSclock % 10 == 0) {
@@ -107,7 +108,7 @@ module TSOS {
         // At this point, the table is recreated instead of updated
         public static hostUpdateMemDisplay() {
             let html:string = '';
-            let memSize = _Memory.memSize;
+            let memSize = _Memory.getMemSize();
             let mem: number[] = _Memory.getBytes(0, memSize);
             for (let i = 0; i < memSize; i++) {
                 if (i % Devices.rowSize == 0) {
