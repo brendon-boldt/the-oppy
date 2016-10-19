@@ -81,7 +81,7 @@ var TSOS;
             let ct = this.getProcessByPid(pid);
             let segNum = ct.segment;
             ct.state = STATE_EXECUTING;
-            _CPU.startExecution(_MMU.getSegmentAddress(segNum));
+            _CPU.startExecution(_MMU.getSegmentAddress(segNum), segNum);
         }
         runAll() {
             for (let pid in this.processes.keys()) {

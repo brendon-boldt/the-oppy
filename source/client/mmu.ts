@@ -10,26 +10,11 @@ module TSOS {
         private segmentUse: boolean[] = [];
         constructor(public segmentSize: number = Mmu.defaultSegmentSize) {
             this.segmentCount = Math.floor(_Memory.getMemSize()/this.segmentSize);
-            /*
-            for (let i = 0; i < this.segmentCount; i++) {
-                this.segmentUse.push(false);
-            }
-            */
         }
 
         public getSegmentCount(): number {
             return this.segmentCount;
         }
-
-        /*
-        public getOpenSegNum(): number {
-            for (let i = 0; i < this.segmentCount; i++) {
-                if (this.segmentUse[i] == false)
-                    return i;
-            }
-            return -1;
-        }
-        */
 
         public loadBytesToSegment(segNum: number, bytes: number[]) {
             if (segNum < this.segmentCount && bytes.length <= this.segmentSize) {
@@ -54,6 +39,26 @@ module TSOS {
             } else {
                 // TODO raise error
                 alert("Error: tried to clear segment " + segNum);
+            }
+        }
+
+        public getLogicalByte(addr: number, segment: number): number {
+            if (addr < this.segmentSize) {
+                let absAddr = segment * this.segmentSize + addr;
+                return _Memory.getByte(absAddr);
+            } else {
+                // TODO raise error
+                alert("Invalid memory access.");
+            }
+        }
+
+        public setLogicalByte(addr: number, segment: number, value: number): void {
+            if (addr < this.segmentSize) {
+                let absAddr = segment * this.segmentSize + addr;
+                _Memory.setByte(absAddr, value);
+            } else {
+                // TODO raise error
+                alert("Invalid memory access.");
             }
         }
     }

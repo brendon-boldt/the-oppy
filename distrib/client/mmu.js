@@ -6,24 +6,10 @@ var TSOS;
             this.segmentSize = segmentSize;
             this.segmentUse = [];
             this.segmentCount = Math.floor(_Memory.getMemSize() / this.segmentSize);
-            /*
-            for (let i = 0; i < this.segmentCount; i++) {
-                this.segmentUse.push(false);
-            }
-            */
         }
         getSegmentCount() {
             return this.segmentCount;
         }
-        /*
-        public getOpenSegNum(): number {
-            for (let i = 0; i < this.segmentCount; i++) {
-                if (this.segmentUse[i] == false)
-                    return i;
-            }
-            return -1;
-        }
-        */
         loadBytesToSegment(segNum, bytes) {
             if (segNum < this.segmentCount && bytes.length <= this.segmentSize) {
                 _Memory.setBytes(segNum * this.segmentSize, bytes);
@@ -47,6 +33,26 @@ var TSOS;
             else {
                 // TODO raise error
                 alert("Error: tried to clear segment " + segNum);
+            }
+        }
+        getLogicalByte(addr, segment) {
+            if (addr < this.segmentSize) {
+                let absAddr = segment * this.segmentSize + addr;
+                return _Memory.getByte(absAddr);
+            }
+            else {
+                // TODO raise error
+                alert("Invalid memory access.");
+            }
+        }
+        setLogicalByte(addr, segment, value) {
+            if (addr < this.segmentSize) {
+                let absAddr = segment * this.segmentSize + addr;
+                _Memory.setByte(absAddr, value);
+            }
+            else {
+                // TODO raise error
+                alert("Invalid memory access.");
             }
         }
     }

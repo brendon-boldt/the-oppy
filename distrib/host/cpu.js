@@ -33,52 +33,123 @@ var TSOS;
             this.Zflag = 0;
             this.isExecuting = false;
         }
+        translateAddress(addr) {
+            return _MMU.getLogicalByte(addr + 1, this.segment) * 0x100
+                + _MMU.getLogicalByte(addr, this.segment);
+        }
+        loadAccConstant() {
+            this.Acc = _Memory.getByte(this.PC + 1);
+            this.PC += 2;
+        }
+        loadAccMemory() {
+            this.Acc = _MMU.getLogicalByte(this.translateAddress(this.PC + 1), this.segment);
+            this.PC += 3;
+        }
+        noop() {
+            this.PC += 1;
+        }
+        halt() {
+            _Status = 'idle';
+            this.isExecuting = false;
+            _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, null));
+        }
+        storeAccMemory() {
+            _MMU.setLogicalByte(this.translateAddress(this.PC + 1), this.segment, this.Acc);
+            this.PC += 3;
+        }
+        addWithCarry() {
+            // Modulo max byte value in case of overflow
+            this.Acc = (this.Acc + _MMU.getLogicalByte(this.translateAddress(this.PC + 1), this.segment)) % 0x100;
+            this.PC += 3;
+        }
+        loadXConstant() {
+            this.Xreg = _Memory.getByte(this.PC + 1);
+            this.PC += 2;
+        }
+        loadXMem() {
+            this.Xreg = _MMU.getLogicalByte(this.translateAddress(this.PC + 1), this.segment);
+            this.PC += 3;
+        }
+        loadYConstant() {
+            this.Yreg = _Memory.getByte(this.PC + 1);
+            this.PC += 2;
+        }
+        loadYMem() {
+            this.Yreg = _MMU.getLogicalByte(this.translateAddress(this.PC + 1), this.segment);
+            this.PC += 3;
+        }
+        compareX() {
+            let res = (this.Xreg
+                == _MMU.getLogicalByte(this.translateAddress(this.PC + 1), this.segment));
+            this.Zflag = (res) ? 1 : 0;
+            this.PC += 3;
+        }
+        branchNotEqual() {
+        }
+        incrementByte() {
+            let addr = this.translateAddress(this.PC + 1);
+            _MMU.setLogicalByte(addr, this.segment, (_MMU.getLogicalByte(addr, this.segment) + 1) % 0x100);
+            this.PC += 3;
+        }
+        systemCall() {
+        }
         handleOpCode(oc) {
             switch (oc) {
                 case 0xA9:
-                    this.Acc = _Memory.getByte(this.PC + 1);
-                    this.PC += 2;
+                    this.loadAccConstant();
                     break;
                 case 0xAD:
-                    // TODO fix memory access
-                    this.Acc = _Memory.getByte(_Memory.getByte(this.PC + 2) * 0x100
-                        + _Memory.getByte(this.PC + 1));
-                    this.PC += 3;
+                    this.loadAccMemory();
                     break;
                 case 0x8D:
+                    this.storeAccMemory();
                     break;
                 case 0x6D:
+                    this.addWithCarry();
                     break;
                 case 0xA2:
+                    this.loadXConstant();
                     break;
                 case 0xAE:
+                    this.loadXMem();
                     break;
                 case 0xA0:
+                    this.loadYConstant();
                     break;
                 case 0xAC:
+                    this.loadYMem();
                     break;
                 case 0xEA:
-                    this.PC++;
+                    this.noop();
                     break;
                 case 0x00:
-                    _Status = 'idle';
-                    this.isExecuting = false;
-                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, null));
+                    this.halt();
                     break;
                 case 0xEC:
+                    this.compareX();
                     break;
                 case 0xD0:
+                    this.branchNotEqual();
                     break;
                 case 0xEE:
+                    this.incrementByte();
                     break;
                 case 0xFF:
+                    this.systemCall();
+                    break;
+                default:
+                    // TODO raise proper error
+                    alert('Invalid opcode');
                     break;
             }
         }
-        startExecution(addr) {
+        // TODO add set context
+        startExecution(addr, segment) {
             // TODO check the address
             this.PC = addr;
+            TSOS.Devices.hostSetMemCellColor(this.PC, 'green');
             this.isExecuting = true;
+            this.segment = segment;
             _Status = 'processing';
         }
         clearColors() {
@@ -90,10 +161,11 @@ var TSOS;
         cycle() {
             _Kernel.krnTrace('CPU cycle');
             this.clearColors();
-            TSOS.Devices.hostUpdateCpuDisplay();
-            TSOS.Devices.hostSetMemCellColor(this.PC, 'green');
             this.coloredCells.push(this.PC);
-            this.handleOpCode(_Memory.getByte(this.PC));
+            this.handleOpCode(_MMU.getLogicalByte(this.PC, this.segment));
+            TSOS.Devices.hostUpdateCpuDisplay();
+            TSOS.Devices.hostUpdateMemDisplay();
+            TSOS.Devices.hostSetMemCellColor(this.PC, 'green');
             if (!this.isExecuting) {
                 this.clearColors();
             }
