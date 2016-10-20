@@ -1,5 +1,6 @@
 ///<reference path="../globals.ts" />
 ///<reference path="../os/canvastext.ts" />
+///<reference path="../jquery.d.ts" />
 /* ------------
      Control.ts
 
@@ -23,10 +24,8 @@
 //
 var TSOS;
 (function (TSOS) {
-    var Control = (function () {
-        function Control() {
-        }
-        Control.hostInit = function () {
+    class Control {
+        static hostInit() {
             // This is called from index.html's onLoad event via the onDocumentLoad function pointer.
             // Get a global reference to the canvas.  TODO: Should we move this stuff into a Display Device Driver?
             _Canvas = document.getElementById('display');
@@ -48,9 +47,8 @@ var TSOS;
                 _GLaDOS = new Glados();
                 _GLaDOS.init();
             }
-        };
-        Control.hostLog = function (msg, source) {
-            if (source === void 0) { source = "?"; }
+        }
+        static hostLog(msg, source = "?") {
             // Note the OS CLOCK.
             var clock = _OSclock;
             // Note the REAL clock in milliseconds since January 1, 1970.
@@ -61,30 +59,47 @@ var TSOS;
             var taLog = document.getElementById("taHostLog");
             taLog.value = str + taLog.value;
             // TODO in the future: Optionally update a log database or some streaming service.
-        };
+        }
         //
         // Host Events
         //
-        Control.hostBtnStartOS_click = function (btn) {
+        static hostSetStatus(text) {
+            $('#statusText').text(text);
+        }
+        static hostToggleOSVisibility(visible) {
+            if (visible)
+                $('#divMain').removeClass('os-hidden');
+            else
+                $('#divMain').addClass('os-hidden');
+        }
+        static hostGetUPI() {
+            return $('#taProgramInput').val();
+        }
+        static hostBtnStartOS_click(btn) {
             // OS should be running normally now 
             _Status = 'idle';
             // Disable the (passed-in) start button...
             btn.disabled = true;
             // .. enable the Halt and Reset buttons ...
-            document.getElementById("btnHaltOS").disabled = false;
-            document.getElementById("btnReset").disabled = false;
+            $('#btnHaltOS').prop('disabled', false);
+            $('#btnReset').prop('disabled', false);
+            $('#btnSSMode').prop('disabled', false);
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
-            _CPU = new TSOS.Cpu(); // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
-            _CPU.init(); //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+            _CPU = new TSOS.Cpu();
+            _CPU.init();
+            _Memory = new TSOS.Memory();
+            TSOS.Devices.hostUpdateMemDisplay();
+            _PCB = new TSOS.Pcb();
+            _MMU = new TSOS.Mmu();
             // ... then set the host clock pulse ...
             _hardwareClockID = setInterval(TSOS.Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
             // .. and call the OS Kernel Bootstrap routine.
             _Kernel = new TSOS.Kernel();
             _Kernel.krnBootstrap(); // _GLaDOS.afterStartup() will get called in there, if configured.
-        };
-        Control.hostBtnHaltOS_click = function (btn) {
+        }
+        static hostBtnHaltOS_click(btn) {
             _Status = 'off';
             Control.hostLog("Emergency halt", "host");
             Control.hostLog("Attempting Kernel shutdown.", "host");
@@ -93,15 +108,33 @@ var TSOS;
             // Stop the interval that's simulating our clock pulse.
             clearInterval(_hardwareClockID);
             // TODO: Is there anything else we need to do here?
-        };
-        Control.hostBtnReset_click = function (btn) {
+        }
+        static hostBtnReset_click(btn) {
             // The easiest and most thorough way to do this is to reload (not refresh) the document.
             location.reload(true);
             // That boolean parameter is the 'forceget' flag. When it is true it causes the page to always
             // be reloaded from the server. If it is false or not specified the browser may reload the
             // page from its cache, which is not what we want.
-        };
-        return Control;
-    }());
+        }
+        static hostBtnSSMode_click(btn) {
+            if (_SSMode == false) {
+                $('#btnSSMode').addClass('btn-success');
+                $('#btnSSMode').removeClass('btn-danger');
+                $('#btnSSMode').prop('value', 'Single-Step: ON');
+                $('#btnStep').prop('disabled', false);
+                _SSMode = true;
+            }
+            else {
+                $('#btnSSMode').addClass('btn-danger');
+                $('#btnSSMode').removeClass('btn-success');
+                $('#btnSSMode').prop('value', 'Single-Step: OFF');
+                $('#btnStep').prop('disabled', true);
+                _SSMode = false;
+            }
+        }
+        static hostBtnStep_click(btn) {
+            _NextStep = true;
+        }
+    }
     TSOS.Control = Control;
 })(TSOS || (TSOS = {}));

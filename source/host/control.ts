@@ -1,5 +1,6 @@
 ///<reference path="../globals.ts" />
 ///<reference path="../os/canvastext.ts" />
+///<reference path="../jquery.d.ts" />
 
 /* ------------
      Control.ts
@@ -78,23 +79,45 @@ module TSOS {
         //
         // Host Events
         //
+
+        public static hostSetStatus(text: string): void {
+            $('#statusText').text(text);
+        }
+
+        public static hostToggleOSVisibility(visible: boolean): void {
+            if (visible)
+                $('#divMain').removeClass('os-hidden');
+            else
+                $('#divMain').addClass('os-hidden');
+        }
+
+        public static hostGetUPI(): string {
+            return $('#taProgramInput').val();       
+        }
+
         public static hostBtnStartOS_click(btn): void {
             // OS should be running normally now 
             _Status = 'idle';
-
             // Disable the (passed-in) start button...
             btn.disabled = true;
 
             // .. enable the Halt and Reset buttons ...
-            (<HTMLButtonElement>document.getElementById("btnHaltOS")).disabled = false;
-            (<HTMLButtonElement>document.getElementById("btnReset")).disabled = false;
+            $('#btnHaltOS').prop('disabled', false);
+            $('#btnReset').prop('disabled', false);
+            $('#btnSSMode').prop('disabled', false);
 
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
 
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
-            _CPU = new Cpu();  // Note: We could simulate multi-core systems by instantiating more than one instance of the CPU here.
-            _CPU.init();       //       There's more to do, like dealing with scheduling and such, but this would be a start. Pretty cool.
+            _CPU = new Cpu();
+            _CPU.init();
+            _Memory = new Memory();
+            TSOS.Devices.hostUpdateMemDisplay();
+            _PCB = new Pcb();
+            _MMU = new Mmu();
+
+
 
             // ... then set the host clock pulse ...
             _hardwareClockID = setInterval(Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
@@ -122,5 +145,29 @@ module TSOS {
             // be reloaded from the server. If it is false or not specified the browser may reload the
             // page from its cache, which is not what we want.
         }
+
+
+        public static hostBtnSSMode_click(btn): void {
+            if (_SSMode == false) {
+                $('#btnSSMode').addClass('btn-success');
+                $('#btnSSMode').removeClass('btn-danger');
+                $('#btnSSMode').prop('value','Single-Step: ON');
+                $('#btnStep').prop('disabled', false);
+                _SSMode = true;
+            } else {
+                $('#btnSSMode').addClass('btn-danger');
+                $('#btnSSMode').removeClass('btn-success');
+                $('#btnSSMode').prop('value','Single-Step: OFF');
+                $('#btnStep').prop('disabled', true);
+                _SSMode = false;
+            }
+        }
+
+
+        public static hostBtnStep_click(btn): void {
+            _NextStep = true;
+        }
     }
+
+
 }

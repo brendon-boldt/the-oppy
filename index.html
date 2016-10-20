@@ -3,7 +3,6 @@
 <head>
    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
    <meta name="author"             content="Alan G. Labouseur" />
-   <link rel="stylesheet" href="tsos.css" type="text/css" media="screen" />
    <title>
       The Oppy
    </title>
@@ -18,6 +17,8 @@
 
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js">
    </script>
+
+   <link rel="stylesheet" href="tsos.css" type="text/css" media="screen" />
    <!-- Globals CONSTANTS and _Variables. Must included be first. -->
    <script type="text/javascript" src="distrib/globals.js"></script>
 
@@ -25,6 +26,9 @@
    <script type="text/javascript" src="distrib/host/control.js"></script>
    <script type="text/javascript" src="distrib/host/devices.js"></script>
    <script type="text/javascript" src="distrib/host/cpu.js"></script>
+   <script type="text/javascript" src="distrib/host/memory.js"></script>
+   <script type="text/javascript" src="distrib/client/mmu.js"></script>
+   <script type="text/javascript" src="distrib/client/pcb.js"></script>
 
    <!-- Virtual OS Routines: Make sure Kernel code is last, since it needs those above it. -->
    <script type="text/javascript" src="distrib/os/interrupt.js"></script>
@@ -41,21 +45,21 @@
    <!-- Other Routines -->
    <script type="text/javascript" src="distrib/utils.js"></script>
    <!-- Uncomment this line below to enable GLaDOS testing -->
-   <!-- <script type="text/javascript" src="http://www.labouseur.com/courses/os/projects/glados.js"></script> -->
+   <script type="text/javascript" src="test/glados-ip2.js"></script>
 </head>
 
 <body onload="onDocumentLoad()" class='bg-off'>
 
   <div id="bgImage"></div>
+
   <div id="jumbotron" class="jumbotron">
     <div id='statusRow' class="row">
-      <div id='statusTitle' class='col-sm-2'>The Oppy</div>
-      <div id='statusText' class='col-sm-2'>[status]</div>
-      <div id='statusButtons' class='col-sm-6'>
+      <div id='statusTitle' class='col-md-2'>The Oppy</div>
+      <div id='statusText' class='col-md-4'>[status]</div>
+      <div id='statusButtons' class='col-md-4'>
    <div id="divButtonBar" style="margin:4px;">
       <input type="button"
              id = "btnStartOS"
-             name="brnStartOS"
              class="btn-success"
              value="Start"
              tabindex="0"
@@ -63,21 +67,38 @@
 
       <input type="button"
              id = "btnHaltOS"
-             name="brnHaltOS"
              class="btn-danger"
-             disabled="disabled"
+             disabled="true"
              value="Halt"
              tabindex="1"
              onclick="TSOS.Control.hostBtnHaltOS_click(this);">
 
       <input type="button"
              id = "btnReset"
-             name="brnReset"
-             class="btn-default"
+             class="btn-info"
              disabled="disabled"
              value="Reset"
              tabindex="2"
              onclick="TSOS.Control.hostBtnReset_click(this);">
+
+      <input type="button"
+             id = "btnSSMode"
+             class="btn-danger"
+             style="margin-left:20px; width:145px; text-align: left;"
+             disabled="disabled"
+             data-toggle='button'
+             value="Single-Step: OFF"
+             tabindex="3"
+             onclick="TSOS.Control.hostBtnSSMode_click(this);">
+
+      <input type="button"
+             id = "btnStep"
+             class="btn-success"
+             disabled="disabled"
+             data-toggle='button'
+             value=">>"
+             tabindex="3"
+             onclick="TSOS.Control.hostBtnStep_click(this);">
    </div>
       
       
@@ -86,25 +107,13 @@
 
 
 
-      <div id='statusDate' class='col-sm-2'>1970-01-01T00:00:00</div>
+      <div id='statusDate' class='col-md-2'>1970-01-01T00:00:00</div>
     </div>
   </div>
 
-<div id="divMain" style="width:100%;">
+<div id="divMain" class='row' style="width:100%;">
 
-
-   <!--
-   <div id="divStatusBar">
-     <div id="statusText" class="statusBox">
-       [status]
-     </div>
-     <div id="statusDate" class="statusBox">
-       1970-01-01T00:00:00
-     </div>
-   </div>
-   -->
-
-   <div id="divConsole" style="margin:4px; width: 500px; height:500px; float:left;">
+   <div id="divConsole" class='col-md-5'>
       <canvas id="display"
               width="500px"
               height="500px"
@@ -112,28 +121,92 @@
       </canvas>
    </div>
 
-   <div id="divLog" style="margin-left:520px;">
-      <label>
-         Host Log
-         <br>
-         <textarea name="taHostLog"
-                   id  ="taHostLog"
-                   rows="15"
-                   cols="48"
-         ></textarea>
-      </label>
+   <div class='col-md-3'>
+       <div class='panel panel-default'>
+            <div class='panel-title'>Memory</div>
+            <div class='panel-body'>
+                <div id='divMemory'>
+                 <table id  ="tableMemory"
+                 ></table>
+                </div>
+            </div>
+       </div>
+
+       <div class='panel panel-default'>
+            <div class='panel-title'>CPU</div>
+            <div class='panel-body'>
+                <div id='divCPU'>
+                    <table id  ="tableCPU">
+                    <tr>
+                        <th>PC</th>
+                        <th>IR</th>
+                        <th>Acc</th>
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>ZF</th>
+                    </tr>
+                    <tr>
+                        <td id='cpuPC'>--</td>
+                        <td id='cpuIR'>--</td>
+                        <td id='cpuAcc'>--</td>
+                        <td id='cpuX'>--</td>
+                        <td id='cpuY'>--</td>
+                        <td id='cpuZF'>-</td>
+                    </tr>
+                 </table>
+                </div>
+            </div>
+       </div>
+
+
    </div>
 
-   <div id="divUserProgramInput" style="margin-left:520px;">
-      <label>
-         User Program Input
-         <br>
-         <textarea name="taProgramInput"
-                   id  ="taProgramInput"
-                   rows="8"
-                   cols="48"
-         ></textarea>
-      </label>
+   <div class='col-md-4'>
+     <div class='panel panel-default'>
+       <div class='panel-title'>Host Log</div>
+       <div id="divLog" class="panel-body">
+             <textarea readonly name="taHostLog"
+                       id  ="taHostLog"
+                       style="width:100%"
+                       rows="8"
+             ></textarea>
+       </div>
+      </div>
+
+       <div class='panel panel-default'>
+            <div class='panel-title'>PCB</div>
+            <div class='panel-body'>
+                <div id='divPCB'>
+                  <table id  ="tablePCB">
+                        <tr>
+                        <th>PID</th>
+                        <th>State</th>
+                        <th>PC</th>
+                        <th>IR</th>
+                        <th>Acc</th>
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>Z</th>
+                        </tr>
+                 </table>
+                </div>
+            </div>
+       </div>
+
+
+     <div class='panel panel-default'>
+       <div class='panel-title'>User Program Input</div>
+       <div id="divUserProgramInput" class="panel-body">
+             <textarea name="taProgramInput"
+                       id  ="taProgramInput"
+                       rows='4'
+                       style="width:100%"
+             >8D FF FF</textarea>
+             <!-- A program which immediately incurs a segfault and
+                 gets terminated by the MMU. -->
+       </div>
+     </div>
+
    </div>
 </div>
 

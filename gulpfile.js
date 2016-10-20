@@ -15,14 +15,16 @@ gulp.task('compile-typescript', function() {
 		src: [
 			'source/*.ts',
 			'source/host/*.ts',
-			'source/os/*.ts'
+			'source/os/*.ts',
+			'source/client/*.ts'
 		],
 		dest: 'distrib/'
 	};
 
 	return gulp.src(typescriptPaths.src)
         .pipe(typescript({
-        	emitError: false
+        	emitError: false,
+          target: "ES6"
         }))
         .pipe(gulp.dest(typescriptPaths.dest));
 });
@@ -45,6 +47,7 @@ gulp.task('copy-css', function() {
 gulp.task('default', function() {
 	gulp.watch('source/*.ts',      ['compile-typescript']);
 	gulp.watch('source/host/*.ts', ['compile-typescript']);
+	gulp.watch('source/client/*.ts', ['compile-typescript']);
 	gulp.watch('source/os/*.ts',   ['compile-typescript']);
 	gulp.watch('source/styles/*.css',      ['copy-css']);
 });
