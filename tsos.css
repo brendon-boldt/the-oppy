@@ -170,6 +170,10 @@ input[disabled] {
 
 #statusText {
   bottom: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 12pt;
+  padding-top: 6pt;
 }
 
 #statusDate {

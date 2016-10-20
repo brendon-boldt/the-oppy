@@ -12,7 +12,7 @@
 // Global CONSTANTS (TypeScript 1.5 introduced const. Very cool.)
 //
 const APP_NAME: string    = "The Oppy";  
-const APP_VERSION: string = "0.02"; 
+const APP_VERSION: string = "0.03"; 
 
 const CPU_CLOCK_INTERVAL: number = 100;   // This is in ms (milliseconds) so 1000 = 1 second.
 
@@ -28,6 +28,7 @@ const SYSCALL_IRQ: number = 3;
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
 //
 var _CPU: TSOS.Cpu;
+// Single-step mode
 var _SSMode: boolean = false;
 var _NextStep: boolean = false;
 var _Memory: TSOS.Memory;
@@ -39,6 +40,7 @@ var STATE_EXECUTING = Symbol();
 var STATE_READY     = Symbol();
 var STATE_WAITING   = Symbol();
 
+// Overall OS status
 var _Status = 'off';
 
 

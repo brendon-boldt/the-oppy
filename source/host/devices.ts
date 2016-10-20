@@ -45,6 +45,10 @@ module TSOS {
 
         }
 
+        private static clockInterval: number = 10;
+        private static cursorInterval: number = 5;
+        private static colorCheckInterval: number = 2;
+
         //
         // Hardware/Host Clock Pulse
         //
@@ -55,17 +59,19 @@ module TSOS {
             //Devices.hostUpdateMemDisplay();
 
             // Update the clock once per second
-            if (_OSclock % 10 == 0) {
+            if (_OSclock % Devices.colorCheckInterval == 0) {
                 $('#statusDate').text(Devices.getISODate());
             }
 
-
-            if (_OSclock % 5 == 0) {
+            if (_OSclock % Devices.cursorInterval == 0) {
                 // Toggle the blinking cursor state every 0.5 seconds
                 if (_Status == 'idle' || _Status == 'processing')
                     _Console.toggleCursor(!_Console.cursorState);
                 else
                     _Console.toggleCursor(false);
+            }
+
+            if (_OSclock % Devices.colorCheckInterval == 0) {
 
                 // TODO Make a list of stati
                 // Remove the background color classes and readd correct
@@ -95,6 +101,8 @@ module TSOS {
             _OSclock++;
         }
 
+        /** Now we just can't have uneven padding, can we?
+         */
         private static formatValue(num: number, padding: number): string {
             let str: string;
             if (num == undefined) {
@@ -111,10 +119,12 @@ module TSOS {
         public static rowSize: number = 0x8;
 
         // At this point, the table is recreated instead of updated
+        // This does not seem to be burden if it is not done too often
         public static hostUpdateMemDisplay() {
             let html:string = '';
             let memSize = _Memory.getMemSize();
             let mem: number[] = _Memory.getBytes(0, memSize);
+            // Each row and cell has a unique ID so it can be modified if needed
             for (let i = 0; i < memSize; i++) {
                 if (i % Devices.rowSize == 0) {
                     html += "<tr id='memRow"+Math.floor(i/Devices.rowSize)+"'><td>0x"
@@ -132,6 +142,8 @@ module TSOS {
             $('#tableMemory').html(html);
         }
 
+        /** Set the color of a cell in the memory display
+         */
         public static hostSetMemCellColor(addr: number,
                 color: string = 'black'): void {
             $('#memCell'+addr).css('color', color);

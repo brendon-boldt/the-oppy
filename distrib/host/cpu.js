@@ -33,12 +33,17 @@ var TSOS;
             this.Zflag = 0;
             this.isExecuting = false;
         }
+        /** Translate the little endian address.
+         */
         translateAddress(addr) {
             //TSOS.Devices.hostSetMemCellColor(this.PC+1, 'blue');
             //TSOS.Devices.hostSetMemCellColor(this.PC+2, 'blue');
             return _MMU.getLogicalByte(addr + 1, this.segment) * 0x100
                 + _MMU.getLogicalByte(addr, this.segment);
         }
+        /**
+         * Below are the opcode methods.
+         */
         loadAccConstant() {
             this.Acc = _Memory.getByte(this.PC + 1);
             this.PC += 2;
@@ -52,7 +57,6 @@ var TSOS;
         }
         halt() {
             _Status = 'idle';
-            //this.isExecuting = false;
             _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, null));
         }
         storeAccMemory() {
@@ -61,6 +65,7 @@ var TSOS;
         }
         addWithCarry() {
             // Modulo max byte value in case of overflow
+            // Not sure if this is correct behavior, but it is easiest.
             this.Acc = (this.Acc + _MMU.getLogicalByte(this.translateAddress(this.PC + 1), this.segment)) % 0x100;
             this.PC += 3;
         }
@@ -97,6 +102,7 @@ var TSOS;
         }
         incrementByte() {
             let addr = this.translateAddress(this.PC + 1);
+            // Modulo byte in case of overflow
             _MMU.setLogicalByte(addr, this.segment, (_MMU.getLogicalByte(addr, this.segment) + 1) % 0x100);
             this.PC += 3;
         }
@@ -149,15 +155,18 @@ var TSOS;
                     this.systemCall();
                     break;
                 default:
-                    // TODO raise proper error
-                    alert('Invalid opcode: '
+                    _StdOut.putText('Invalid opcode: '
                         + oc.toString(16).toUpperCase()
                         + '@'
                         + this.PC.toString(16).toUpperCase());
+                    // Terminate the program if an invalid opcode is found
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, null));
                     break;
             }
         }
         // TODO add set context
+        /** All the necessary prep for getting a process started.
+         */
         startExecution(addr, segment) {
             // TODO check the address
             this.PC = addr;
@@ -168,6 +177,8 @@ var TSOS;
             this.IR = _MMU.getLogicalByte(this.PC, this.segment);
             TSOS.Devices.hostUpdateCpuDisplay();
         }
+        /** Remove the coloring from cells.
+         */
         clearColors() {
             for (let i = 0; i < this.coloredCells.length; i++) {
                 TSOS.Devices.hostSetMemCellColor(this.coloredCells[i]);

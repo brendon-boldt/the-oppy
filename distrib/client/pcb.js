@@ -1,6 +1,9 @@
 ///<reference path="../globals.ts" />
 var TSOS;
 (function (TSOS) {
+    /**
+     * The Context class represents the context of a given thread
+     */
     class Context {
         constructor(PC = 0, Acc = 0, Xreg = 0, Yreg = 0, Zflag = 0, segment = 0x0) {
             this.PC = PC;
@@ -18,6 +21,8 @@ var TSOS;
             this.processes = processes;
             this.pidCounter = 0;
         }
+        // I am sorry I do not have a good data structure for retrieval.
+        // I will find something ... eventually.
         getProcessByPid(pid) {
             for (let i = 0; i < this.processes.length; i++) {
                 if (this.processes[i].pid == pid)
@@ -25,6 +30,8 @@ var TSOS;
             }
             return null;
         }
+        /** Get the process currently executing on the CPU.
+         */
         getCurrentProcess() {
             let ct = null;
             for (let i = 0; i < this.processes.length; i++) {
@@ -33,6 +40,8 @@ var TSOS;
             }
             return ct;
         }
+        /** Update the PCB entry corresponding to the current process.
+         */
         updatePCB() {
             let ct = this.getCurrentProcess();
             ct.PC = _CPU.PC;
@@ -42,6 +51,8 @@ var TSOS;
             ct.Yreg = _CPU.Yreg;
             ct.Zflag = _CPU.Zflag;
         }
+        /** Get list of processes currently ready to be executed.
+         */
         getReadyProcesses() {
             let cts = [];
             for (let i = 0; i < this.processes.length; i++) {
@@ -50,7 +61,11 @@ var TSOS;
             }
             return cts;
         }
+        /** Get the first available segment not being used by a process.
+         */
         getNextSegment() {
+            // Make an array of segment indices where 'true' means used
+            // and 'undefined' means unused.
             let segs = Array(_MMU.getSegmentCount());
             for (let i = 0; i < this.processes.length; i++) {
                 segs[this.processes[i].segment] = true;
@@ -77,10 +92,10 @@ var TSOS;
         }
         /**
          * Returns the PID
+         * Loads bytes to the first open segment before calling addProcess()
          */
         loadProcess(bytes) {
             let segNum = this.getNextSegment();
-            console.log("segNum: " + segNum);
             if (segNum != undefined) {
                 _MMU.loadBytesToSegment(segNum, bytes);
                 let ct = new Context();
@@ -88,7 +103,6 @@ var TSOS;
                 return this.addProcess(ct);
             }
             else {
-                // TODO throw error
                 _StdOut.putText("Loading failed: no available segments.");
                 _StdOut.advanceLine();
                 return -1;
@@ -103,6 +117,10 @@ var TSOS;
                 return false;
             }
         }
+        /**
+         * Set the segment and begin executing.
+         * TODO Will add actually passing the context to the CPU for switching
+         */
         runProcess(pid) {
             let ct = this.getProcessByPid(pid);
             let segNum = ct.segment;
@@ -116,24 +134,32 @@ var TSOS;
         }
         /**
          * If pid == -1, terminate the currently running process
+         * This should ONLY be called using the TErM_IRQ interrupt -- ONLY
          */
         terminateProcess(pid = -1) {
+            let ct;
             if (pid == -1) {
+                // No args: find the currently executing process
                 for (let i = 0; i < this.processes.length; i++) {
                     if (this.processes[i].state == STATE_EXECUTING)
-                        pid = this.processes[i].pid;
+                        ct = this.processes[i];
                 }
             }
-            console.log("Terminating: " + pid);
-            let ct = this.getProcessByPid(pid);
+            else {
+                ct = this.getProcessByPid(pid);
+            }
+            console.log("Terminating: " + ct.pid);
             if (ct) {
+                // Clear the segment
                 _MMU.clearSegment(ct.segment);
                 let index;
                 for (let i = 0; i < this.processes.length; i++) {
                     if (this.processes[i].pid == pid)
                         index = i;
                 }
+                // Remove the context from the PCB
                 this.processes.splice(index, 1);
+                // Stop executing and update various displays
                 _CPU.isExecuting = false;
                 _CPU.clearColors();
                 TSOS.Devices.hostUpdatePcbDisplay();
