@@ -4,7 +4,7 @@
 module TSOS {
 export class Memory { 
 
-    public static defaultMemorySize = 0x200;
+    public static defaultMemorySize = 0x100;
 
     constructor(
         private bytes: number[] = Array(Memory.defaultMemorySize)
@@ -32,7 +32,7 @@ export class Memory {
         if (this.checkAddr(addr))
             return this.bytes[addr];
         else {
-            alert('This will be an error');
+            alert('Memory address outside of physical memory');
             return 0x0;
         }
     }
@@ -41,7 +41,7 @@ export class Memory {
        if (this.checkAddr(addr) && this.checkAddr(addr+size-1)) {
             return this.bytes.slice(addr, size);
        } else {
-            alert('This will be an error');
+            alert('Memory address outside of physical memory');
             return [0x0];
        }
     }

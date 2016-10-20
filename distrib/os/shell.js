@@ -130,7 +130,7 @@ var TSOS;
                 _StdOut.advanceLine();
             }
             // ... and finally write the prompt again.
-            if (_Status != 'error' && _Status != 'off')
+            if (_Status != 'error' && _Status != 'off' && _Status != 'processing')
                 this.putPrompt();
         }
         parseInput(buffer) {
@@ -240,7 +240,6 @@ var TSOS;
                     _StdOut.putText("Program loaded with PID " + pid);
                 }
                 else {
-                    _StdOut.putText("An error occurred while loading the program.");
                 }
                 TSOS.Devices.hostUpdateMemDisplay();
             }

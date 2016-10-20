@@ -85,7 +85,13 @@ var TSOS;
             _OSclock++;
         }
         static formatValue(num, padding) {
-            let str = num.toString(16).toUpperCase();
+            let str;
+            if (num == undefined) {
+                str = "--";
+            }
+            else {
+                str = num.toString(16).toUpperCase();
+            }
             while (str.length < padding) {
                 str = '0' + str;
             }
@@ -121,17 +127,49 @@ var TSOS;
                 $('#memCell' + addr).css('font-weight', 'normal');
             }
         }
-        /*
-         *
-        this.PC = 0;
-        this.Acc = 0;
-        this.Xreg = 0;
-        this.Yreg = 0;
-        this.Zflag = 0;
-        this.isExecuting = false;
-         */
+        static translateState(state) {
+            switch (state) {
+                case STATE_READY:
+                    return 'Ready';
+                case STATE_WAITING:
+                    return 'Waiting';
+                case STATE_EXECUTING:
+                    return 'Executing';
+                default:
+                    return '-';
+            }
+        }
+        static hostUpdatePcbDisplay() {
+            // TODO fix spacing error
+            let html = ("<tr>" +
+                "<th>PID</th>" +
+                "<th>State</th>" +
+                "<th>PC</th>" +
+                "<th>IR</th>" +
+                "<th>Acc</th>" +
+                "<th>X</th>" +
+                "<th>Y</th>" +
+                "<th>Z</th>" +
+                "</tr>");
+            let ct;
+            for (let i = 0; i < _PCB.processes.length; i++) {
+                ct = _PCB.processes[i];
+                html += "<tr>";
+                html += "<td>" + Devices.formatValue(ct.pid, 1) + "</td>";
+                html += "<td>" + Devices.translateState(ct.state) + "</td>";
+                html += "<td>" + Devices.formatValue(ct.PC, 3) + "</td>";
+                html += "<td>" + Devices.formatValue(ct.IR, 2) + "</td>";
+                html += "<td>" + Devices.formatValue(ct.Acc, 2) + "</td>";
+                html += "<td>" + Devices.formatValue(ct.Xreg, 2) + "</td>";
+                html += "<td>" + Devices.formatValue(ct.Yreg, 2) + "</td>";
+                html += "<td>" + Devices.formatValue(ct.Zflag, 1) + "</td>";
+                html += "</tr>";
+            }
+            $('#tablePCB').html(html);
+        }
         static hostUpdateCpuDisplay() {
             $('#cpuPC').html(Devices.formatValue(_CPU.PC, 3));
+            $('#cpuIR').html(Devices.formatValue(_CPU.IR, 2));
             $('#cpuAcc').html(Devices.formatValue(_CPU.Acc, 2));
             $('#cpuX').html(Devices.formatValue(_CPU.Xreg, 2));
             $('#cpuY').html(Devices.formatValue(_CPU.Yreg, 2));

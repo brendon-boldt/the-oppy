@@ -100,6 +100,34 @@ module TSOS {
             // Put more here.
         }
 
+        private krnSysCallPrintByte(): void {
+            _StdOut.putText(_CPU.Yreg.toString());
+        }
+
+        private krnSysCallPrintBytes(): void {
+            let addr = _CPU.Yreg;
+            let str = "";
+            let ct = _PCB.getCurrentProcess();
+            let value;
+            do {
+                value = _MMU.getLogicalByte(addr, ct.segment);
+                addr += 1;
+                str += String.fromCharCode(value);
+            } while (value != 0x0);
+            _StdOut.putText(str);
+        }
+
+        private krnSysCall(): void {
+            switch (_CPU.Xreg) {
+                case 1:
+                    this.krnSysCallPrintByte();
+                case 2:
+                    this.krnSysCallPrintBytes();
+                default:
+                    // TODO raise error
+            }
+        }
+
         public krnInterruptHandler(irq, params) {
             // Trace our entrance here so we can compute Interrupt
             // Latency by analyzing the log file later on. Page 766.
@@ -119,6 +147,9 @@ module TSOS {
                     break;
                 case TERM_IRQ:
                     _PCB.terminateProcess();
+                    break;
+                case SYSCALL_IRQ:
+                    this.krnSysCall();
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");

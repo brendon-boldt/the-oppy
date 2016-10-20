@@ -43,22 +43,27 @@ module TSOS {
         }
 
         public getLogicalByte(addr: number, segment: number): number {
-            if (addr < this.segmentSize) {
+            if (addr < this.segmentSize && segment < this.segmentCount) {
                 let absAddr = segment * this.segmentSize + addr;
                 return _Memory.getByte(absAddr);
             } else {
                 // TODO raise error
-                alert("Invalid memory access.");
+                //_StdOut.putText("Illegal memory access.");
+                _PCB.terminateProcess();
+                // Kill the process
+                _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, null));
             }
         }
 
         public setLogicalByte(addr: number, segment: number, value: number): void {
-            if (addr < this.segmentSize) {
+            if (addr < this.segmentSize && segment < this.segmentCount) {
                 let absAddr = segment * this.segmentSize + addr;
                 _Memory.setByte(absAddr, value);
             } else {
                 // TODO raise error
-                alert("Invalid memory access.");
+                _StdOut.putText("Illegal memory access.");
+                // Kill the process
+                _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, null));
             }
         }
     }

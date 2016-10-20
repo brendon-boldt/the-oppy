@@ -12,6 +12,7 @@ module TSOS {
         }
 
         public pid: number;
+        public IR: number;
         public state: symbol = STATE_READY;
     }
 
@@ -31,19 +32,45 @@ module TSOS {
             return null;
         }
 
-        public getNextSegment(): number {
-            let minSeg = _MMU.getSegmentCount();
-            if (this.processes.length == 0)
-                return 0;
+        public getCurrentProcess(): Context {
+            let ct = null;
             for (let i = 0; i < this.processes.length; i++) {
-                if (this.processes[i].segment < minSeg)
-                    minSeg = this.processes[i].segment;
+                if (this.processes[i].state == STATE_EXECUTING)
+                    ct = this.processes[i];
             }
-            console.log(this.processes);
-            console.log(minSeg);
-            console.log(_MMU.getSegmentCount());
-            if (minSeg == _MMU.getSegmentCount()) {
-                minSeg = -1;
+            return ct;
+        }
+
+        public updatePCB() {
+            let ct = this.getCurrentProcess();
+            ct.PC = _CPU.PC;
+            ct.IR = _CPU.IR;
+            ct.Acc = _CPU.Acc;
+            ct.Xreg = _CPU.Xreg;
+            ct.Yreg = _CPU.Yreg;
+            ct.Zflag = _CPU.Zflag;
+        }
+
+        public getReadyProcesses(): Context[] {
+            let cts: Context[] = [];
+            for (let i = 0; i < this.processes.length; i++) {
+                if (this.processes[i].state == STATE_READY)
+                    cts.push(this.processes[i]);
+            }
+            return cts;
+        }
+
+        public getNextSegment(): number {
+            let segs = Array(_MMU.getSegmentCount());
+            for (let i = 0; i < this.processes.length; i++) {
+                segs[this.processes[i].segment] = true;
+            }
+            let minSeg: number;
+            for (let i = 0; i < segs.length; i++) {
+                if (segs[i] == undefined) {
+                   minSeg = i; 
+                   break;
+                }
             }
             return minSeg;
         }
@@ -56,6 +83,7 @@ module TSOS {
             let pid = this.pidCounter++;
             ct.pid = pid;
             this.processes.push(ct);
+            Devices.hostUpdatePcbDisplay();
             return pid;
         }
 
@@ -65,13 +93,15 @@ module TSOS {
         public loadProcess(bytes: number[]): number {
             let segNum = this.getNextSegment();
             console.log("segNum: " + segNum);
-            if (segNum != -1) {
+            if (segNum != undefined) {
                 _MMU.loadBytesToSegment(segNum, bytes); 
                 let ct = new Context();
                 ct.segment = segNum;
                 return this.addProcess(ct);
             } else {
                 // TODO throw error
+                _StdOut.putText("Loading failed: no available segments.");
+                _StdOut.advanceLine();
                 return -1;
             }
         }
@@ -93,8 +123,8 @@ module TSOS {
         }
 
         public runAll(): void {
-            for (let pid in this.processes.keys()) {
-                this.runProcess(parseInt(pid));
+            for (let i = 0; i < this.processes.length; i++) {
+                this.runProcess(this.processes[i].pid);
             }
         }
 
@@ -118,8 +148,16 @@ module TSOS {
                         index = i;
                 }
                 this.processes.splice(index, 1)
+                _CPU.isExecuting = false;
+                _CPU.clearColors();
+                Devices.hostUpdatePcbDisplay();
+                _Status = 'idle';
             } else {
                 // TODO raise error
+            }
+            if (_PCB.getReadyProcesses().length == 0) {
+                _StdOut.advanceLine();
+                _OsShell.putPrompt();
             }
         }
 

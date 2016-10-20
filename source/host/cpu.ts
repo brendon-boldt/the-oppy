@@ -29,6 +29,7 @@ module TSOS {
         }
 
         public segment: number;
+        public IR: number;
 
         public init(): void {
             this.PC = 0;
@@ -40,6 +41,8 @@ module TSOS {
         }
 
         private translateAddress(addr: number): number {
+            //TSOS.Devices.hostSetMemCellColor(this.PC+1, 'blue');
+            //TSOS.Devices.hostSetMemCellColor(this.PC+2, 'blue');
             return _MMU.getLogicalByte(addr+1, this.segment)*0x100
                 + _MMU.getLogicalByte(addr, this.segment);
         }
@@ -61,7 +64,7 @@ module TSOS {
 
         private halt() {
             _Status = 'idle';
-            this.isExecuting = false;
+            //this.isExecuting = false;
             _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, null));
         }
 
@@ -114,7 +117,14 @@ module TSOS {
         }
 
         private branchNotEqual() {
-
+            TSOS.Devices.hostSetMemCellColor(this.PC+1, 'blue');
+            if (this.Zflag == 0) {
+                this.PC = (this.PC + 2 + _MMU.getLogicalByte(
+                    this.PC+1,
+                    this.segment)) % _MMU.segmentSize;
+            } else {
+                this.PC += 2;
+            }
         }
 
         private incrementByte() {
@@ -127,9 +137,9 @@ module TSOS {
         }
 
         private systemCall() {
-
+            _KernelInterruptQueue.enqueue(new Interrupt(SYSCALL_IRQ, null));
+            this.PC += 1;
         }
-
 
         private handleOpCode(oc: number) {
             switch (oc) {
@@ -177,7 +187,10 @@ module TSOS {
                     break;
                 default:
                     // TODO raise proper error
-                    alert('Invalid opcode');
+                    alert('Invalid opcode: '
+                          + oc.toString(16).toUpperCase()
+                          + '@'
+                          + this.PC.toString(16).toUpperCase());
                     break;
             }
             
@@ -192,11 +205,13 @@ module TSOS {
             this.isExecuting = true;
             this.segment = segment;
             _Status = 'processing';
+            this.IR = _MMU.getLogicalByte(this.PC, this.segment);
+            TSOS.Devices.hostUpdateCpuDisplay();
         }
 
         private coloredCells: number[] = [];
 
-        private clearColors() {
+        public clearColors() {
             for (let i = 0; i < this.coloredCells.length; i++) {
                 TSOS.Devices.hostSetMemCellColor(this.coloredCells[i]);
             }
@@ -210,7 +225,10 @@ module TSOS {
 
             this.coloredCells.push(this.PC);
             this.handleOpCode(_MMU.getLogicalByte(this.PC, this.segment));
+            this.IR = _MMU.getLogicalByte(this.PC, this.segment);
             TSOS.Devices.hostUpdateCpuDisplay();
+            _PCB.updatePCB();
+            TSOS.Devices.hostUpdatePcbDisplay();
             TSOS.Devices.hostUpdateMemDisplay();
             TSOS.Devices.hostSetMemCellColor(this.PC, 'green');
 

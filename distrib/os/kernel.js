@@ -85,6 +85,30 @@ var TSOS;
             TSOS.Devices.hostDisableKeyboardInterrupt();
             // Put more here.
         }
+        krnSysCallPrintByte() {
+            _StdOut.putText(_CPU.Yreg.toString());
+        }
+        krnSysCallPrintBytes() {
+            let addr = _CPU.Yreg;
+            let str = "";
+            let ct = _PCB.getCurrentProcess();
+            let value;
+            do {
+                value = _MMU.getLogicalByte(addr, ct.segment);
+                addr += 1;
+                str += String.fromCharCode(value);
+            } while (value != 0x0);
+            _StdOut.putText(str);
+        }
+        krnSysCall() {
+            switch (_CPU.Xreg) {
+                case 1:
+                    this.krnSysCallPrintByte();
+                case 2:
+                    this.krnSysCallPrintBytes();
+                default:
+            }
+        }
         krnInterruptHandler(irq, params) {
             // Trace our entrance here so we can compute Interrupt
             // Latency by analyzing the log file later on. Page 766.
@@ -103,6 +127,9 @@ var TSOS;
                     break;
                 case TERM_IRQ:
                     _PCB.terminateProcess();
+                    break;
+                case SYSCALL_IRQ:
+                    this.krnSysCall();
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");

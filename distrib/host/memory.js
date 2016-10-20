@@ -23,7 +23,7 @@ var TSOS;
             if (this.checkAddr(addr))
                 return this.bytes[addr];
             else {
-                alert('This will be an error');
+                alert('Memory address outside of physical memory');
                 return 0x0;
             }
         }
@@ -32,7 +32,7 @@ var TSOS;
                 return this.bytes.slice(addr, size);
             }
             else {
-                alert('This will be an error');
+                alert('Memory address outside of physical memory');
                 return [0x0];
             }
         }
@@ -63,6 +63,6 @@ var TSOS;
             }
         }
     }
-    Memory.defaultMemorySize = 0x200;
+    Memory.defaultMemorySize = 0x100;
     TSOS.Memory = Memory;
 })(TSOS || (TSOS = {}));
