@@ -148,7 +148,6 @@ var TSOS;
             else {
                 ct = this.getProcessByPid(pid);
             }
-            console.log("Terminating: " + ct.pid);
             if (ct) {
                 // Clear the segment
                 _MMU.clearSegment(ct.segment);

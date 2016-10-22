@@ -121,8 +121,10 @@ module TSOS {
             switch (_CPU.Xreg) {
                 case 1:
                     this.krnSysCallPrintByte();
+                    break;
                 case 2:
                     this.krnSysCallPrintBytes();
+                    break;
                 default:
                     // TODO raise error
             }

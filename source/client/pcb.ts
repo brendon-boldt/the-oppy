@@ -162,7 +162,6 @@ module TSOS {
                 ct = this.getProcessByPid(pid);
             }
 
-            console.log("Terminating: " + ct.pid);
             if (ct) { // If the proper context was found
                 // Clear the segment
                 _MMU.clearSegment(ct.segment); 
