@@ -27,8 +27,6 @@ module TSOS {
         
         private pidCounter = 0;
 
-        // I am sorry I do not have a good data structure for retrieval.
-        // I will find something ... eventually.
         public getProcessByPid(pid: number): Context {
             for (let i = 0; i < this.processes.length; i++) {
                 if (this.processes[i].pid == pid)
@@ -40,32 +38,29 @@ module TSOS {
         /** Get the process currently executing on the CPU.
          */
         public getCurrentProcess(): Context {
-            let ct = null;
-            for (let i = 0; i < this.processes.length; i++) {
-                if (this.processes[i].state == STATE_EXECUTING)
-                    ct = this.processes[i];
-            }
-            return ct;
+            return _CPU.ct;
         }
 
         /** Update the PCB entry corresponding to the current process.
          */
         public updatePCB() {
+            /*
             let ct = this.getCurrentProcess();
-            ct.PC = _CPU.PC;
-            ct.IR = _CPU.IR;
-            ct.Acc = _CPU.Acc;
-            ct.Xreg = _CPU.Xreg;
-            ct.Yreg = _CPU.Yreg;
-            ct.Zflag = _CPU.Zflag;
+            ct.PC = _CPU.ct.PC;
+            ct.IR = _CPU.ct.IR;
+            ct.Acc = _CPU.ct.Acc;
+            ct.Xreg = _CPU.ct.Xreg;
+            ct.Yreg = _CPU.ct.Yreg;
+            ct.Zflag = _CPU.ct.Zflag;
+            */
         }
 
         /** Get list of processes currently ready to be executed.
          */
-        public getReadyProcesses(): Context[] {
+        public getProcessesByState(state): Context[] {
             let cts: Context[] = [];
             for (let i = 0; i < this.processes.length; i++) {
-                if (this.processes[i].state == STATE_READY)
+                if (this.processes[i].state == state)
                     cts.push(this.processes[i]);
             }
             return cts;
@@ -137,7 +132,7 @@ module TSOS {
             let ct = this.getProcessByPid(pid);
             let segNum = ct.segment;
             ct.state = STATE_EXECUTING;
-            _CPU.startExecution(_MMU.getSegmentAddress(segNum), segNum);
+            _CPU.startExecution(ct);
         }
 
         public runAll(): void {
@@ -150,18 +145,10 @@ module TSOS {
          * If pid == -1, terminate the currently running process
          * This should ONLY be called using the TErM_IRQ interrupt -- ONLY
          */
-        public terminateProcess(pid: number = -1): void {
-            let ct: Context;
-            if (pid == -1) {
-                // No args: find the currently executing process
-                for (let i = 0; i < this.processes.length; i++) {
-                    if (this.processes[i].state == STATE_EXECUTING)
-                        ct = this.processes[i];
-                }
-            }  else {
-                ct = this.getProcessByPid(pid);
-            }
+        public terminateProcess(pid: number): void {
+            let ct: Context = this.getProcessByPid(pid);
 
+            console.log("Terminating: " + pid);            
             if (ct) { // If the proper context was found
                 // Clear the segment
                 _MMU.clearSegment(ct.segment); 
@@ -178,9 +165,10 @@ module TSOS {
                 Devices.hostUpdatePcbDisplay();
                 _Status = 'idle';
             } else {
-                // TODO raise error
+                _StdOut.putText("PID: " + pid + " does not exist.");
+                _StdOut.advanceLine();
             }
-            if (_PCB.getReadyProcesses().length == 0) {
+            if (_PCB.getProcessesByState(STATE_WAITING).length == 0) {
                 _StdOut.advanceLine();
                 _OsShell.putPrompt();
             }

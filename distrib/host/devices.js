@@ -176,12 +176,12 @@ var TSOS;
             $('#tablePCB').html(html);
         }
         static hostUpdateCpuDisplay() {
-            $('#cpuPC').html(Devices.formatValue(_CPU.PC, 3));
-            $('#cpuIR').html(Devices.formatValue(_CPU.IR, 2));
-            $('#cpuAcc').html(Devices.formatValue(_CPU.Acc, 2));
-            $('#cpuX').html(Devices.formatValue(_CPU.Xreg, 2));
-            $('#cpuY').html(Devices.formatValue(_CPU.Yreg, 2));
-            $('#cpuZF').html(_CPU.Zflag + '');
+            $('#cpuPC').html(Devices.formatValue(_CPU.ct.PC, 3));
+            $('#cpuIR').html(Devices.formatValue(_CPU.ct.IR, 2));
+            $('#cpuAcc').html(Devices.formatValue(_CPU.ct.Acc, 2));
+            $('#cpuX').html(Devices.formatValue(_CPU.ct.Xreg, 2));
+            $('#cpuY').html(Devices.formatValue(_CPU.ct.Yreg, 2));
+            $('#cpuZF').html(_CPU.ct.Zflag + '');
         }
         //
         // Keyboard Interrupt, a HARDWARE Interrupt Request. (See pages 560-561 in our text book.)

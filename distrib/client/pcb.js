@@ -21,8 +21,6 @@ var TSOS;
             this.processes = processes;
             this.pidCounter = 0;
         }
-        // I am sorry I do not have a good data structure for retrieval.
-        // I will find something ... eventually.
         getProcessByPid(pid) {
             for (let i = 0; i < this.processes.length; i++) {
                 if (this.processes[i].pid == pid)
@@ -33,30 +31,27 @@ var TSOS;
         /** Get the process currently executing on the CPU.
          */
         getCurrentProcess() {
-            let ct = null;
-            for (let i = 0; i < this.processes.length; i++) {
-                if (this.processes[i].state == STATE_EXECUTING)
-                    ct = this.processes[i];
-            }
-            return ct;
+            return _CPU.ct;
         }
         /** Update the PCB entry corresponding to the current process.
          */
         updatePCB() {
+            /*
             let ct = this.getCurrentProcess();
-            ct.PC = _CPU.PC;
-            ct.IR = _CPU.IR;
-            ct.Acc = _CPU.Acc;
-            ct.Xreg = _CPU.Xreg;
-            ct.Yreg = _CPU.Yreg;
-            ct.Zflag = _CPU.Zflag;
+            ct.PC = _CPU.ct.PC;
+            ct.IR = _CPU.ct.IR;
+            ct.Acc = _CPU.ct.Acc;
+            ct.Xreg = _CPU.ct.Xreg;
+            ct.Yreg = _CPU.ct.Yreg;
+            ct.Zflag = _CPU.ct.Zflag;
+            */
         }
         /** Get list of processes currently ready to be executed.
          */
-        getReadyProcesses() {
+        getProcessesByState(state) {
             let cts = [];
             for (let i = 0; i < this.processes.length; i++) {
-                if (this.processes[i].state == STATE_READY)
+                if (this.processes[i].state == state)
                     cts.push(this.processes[i]);
             }
             return cts;
@@ -125,7 +120,7 @@ var TSOS;
             let ct = this.getProcessByPid(pid);
             let segNum = ct.segment;
             ct.state = STATE_EXECUTING;
-            _CPU.startExecution(_MMU.getSegmentAddress(segNum), segNum);
+            _CPU.startExecution(ct);
         }
         runAll() {
             for (let i = 0; i < this.processes.length; i++) {
@@ -136,18 +131,9 @@ var TSOS;
          * If pid == -1, terminate the currently running process
          * This should ONLY be called using the TErM_IRQ interrupt -- ONLY
          */
-        terminateProcess(pid = -1) {
-            let ct;
-            if (pid == -1) {
-                // No args: find the currently executing process
-                for (let i = 0; i < this.processes.length; i++) {
-                    if (this.processes[i].state == STATE_EXECUTING)
-                        ct = this.processes[i];
-                }
-            }
-            else {
-                ct = this.getProcessByPid(pid);
-            }
+        terminateProcess(pid) {
+            let ct = this.getProcessByPid(pid);
+            console.log("Terminating: " + pid);
             if (ct) {
                 // Clear the segment
                 _MMU.clearSegment(ct.segment);
@@ -165,8 +151,10 @@ var TSOS;
                 _Status = 'idle';
             }
             else {
+                _StdOut.putText("PID: " + pid + " does not exist.");
+                _StdOut.advanceLine();
             }
-            if (_PCB.getReadyProcesses().length == 0) {
+            if (_PCB.getProcessesByState(STATE_WAITING).length == 0) {
                 _StdOut.advanceLine();
                 _OsShell.putPrompt();
             }

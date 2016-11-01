@@ -51,6 +51,10 @@ var TSOS;
             else {
                 // Segfault!
                 _StdOut.putText("Illegal memory access.");
+                _StdOut.advanceLine();
+                _StdOut.putText("Seg: " + segment +
+                    " Addr: 0x" + addr.toString(16));
+                console.log(new Error().stack);
                 // Kill the process
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, null));
             }
@@ -64,6 +68,7 @@ var TSOS;
             }
             else {
                 _StdOut.putText("Illegal memory access.");
+                console.log(new Error().stack);
                 // Kill the process
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, null));
             }

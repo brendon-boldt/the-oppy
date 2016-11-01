@@ -246,7 +246,7 @@ var TSOS;
         }
         // Toggle the state of the blinking cursor
         toggleCursor(state) {
-            let x = this.currentXPosition;
+            let x = Math.floor(this.currentXPosition);
             let y = this.currentYPosition - _DefaultFontSize;
             let xSize = 10;
             let ySize = this.fontHeight;

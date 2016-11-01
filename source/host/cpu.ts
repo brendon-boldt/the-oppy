@@ -19,6 +19,7 @@ module TSOS {
 
     export class Cpu {
 
+      /*
         constructor(public PC: number = 0,
                     public Acc: number = 0,
                     public Xreg: number = 0,
@@ -30,13 +31,21 @@ module TSOS {
 
         public segment: number;
         public IR: number;
+        public currentContext: Context;
+       */
+        constructor(public ct: Context = new Context(),
+                    public isExecuting: boolean = false) {
+        }
 
         public init(): void {
+          /*
             this.PC = 0;
             this.Acc = 0;
             this.Xreg = 0;
             this.Yreg = 0;
             this.Zflag = 0;
+            */
+            this.ct = new Context();
             this.isExecuting = false;
         }
 
@@ -45,8 +54,8 @@ module TSOS {
         private translateAddress(addr: number): number {
             //TSOS.Devices.hostSetMemCellColor(this.PC+1, 'blue');
             //TSOS.Devices.hostSetMemCellColor(this.PC+2, 'blue');
-            return _MMU.getLogicalByte(addr+1, this.segment)*0x100
-                + _MMU.getLogicalByte(addr, this.segment);
+            return _MMU.getLogicalByte(addr+1, this.ct.segment)*0x100
+                + _MMU.getLogicalByte(addr, this.ct.segment);
         }
 
         /**
@@ -54,98 +63,98 @@ module TSOS {
          */
 
         private loadAccConstant() {
-            this.Acc = _Memory.getByte(this.PC+1);
-            this.PC += 2;
+            this.ct.Acc = _Memory.getByte(this.ct.PC+1);
+            this.ct.PC += 2;
         }
 
         private loadAccMemory() {
-            this.Acc = _MMU.getLogicalByte(
-                this.translateAddress(this.PC+1), this.segment);
-            this.PC += 3;
+            this.ct.Acc = _MMU.getLogicalByte(
+                this.translateAddress(this.ct.PC+1), this.ct.segment);
+            this.ct.PC += 3;
         }
 
         private noop() {
-            this.PC += 1;
+            this.ct.PC += 1;
         }
 
         private halt() {
             _Status = 'idle';
-            _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, null));
+            _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, {pid: this.ct.pid}));
         }
 
         private storeAccMemory() {
             _MMU.setLogicalByte(
-                this.translateAddress(this.PC+1),
-                this.segment,
-                this.Acc);
-            this.PC += 3;
+                this.translateAddress(this.ct.PC+1),
+                this.ct.segment,
+                this.ct.Acc);
+            this.ct.PC += 3;
         }
 
         private addWithCarry() {
             // Modulo max byte value in case of overflow
             // Not sure if this is correct behavior, but it is easiest.
-            this.Acc = (this.Acc + _MMU.getLogicalByte(
-                this.translateAddress(this.PC+1), this.segment)) % 0x100;
-            this.PC += 3;
+            this.ct.Acc = (this.ct.Acc + _MMU.getLogicalByte(
+                this.translateAddress(this.ct.PC+1), this.ct.segment)) % 0x100;
+            this.ct.PC += 3;
         }
 
         private loadXConstant() {
-            this.Xreg = _Memory.getByte(this.PC+1);
-            this.PC += 2;
+            this.ct.Xreg = _Memory.getByte(this.ct.PC+1);
+            this.ct.PC += 2;
 
         }
 
         private loadXMem() {
-            this.Xreg = _MMU.getLogicalByte(
-                this.translateAddress(this.PC+1), this.segment);
-            this.PC += 3;
+            this.ct.Xreg = _MMU.getLogicalByte(
+                this.translateAddress(this.ct.PC+1), this.ct.segment);
+            this.ct.PC += 3;
 
         }
 
         private loadYConstant() {
-            this.Yreg = _Memory.getByte(this.PC+1);
-            this.PC += 2;
+            this.ct.Yreg = _Memory.getByte(this.ct.PC+1);
+            this.ct.PC += 2;
         }
 
         private loadYMem() {
-            this.Yreg = _MMU.getLogicalByte(
-                this.translateAddress(this.PC+1), this.segment);
-            this.PC += 3;
+            this.ct.Yreg = _MMU.getLogicalByte(
+                this.translateAddress(this.ct.PC+1), this.ct.segment);
+            this.ct.PC += 3;
 
         }
 
         private compareX() {
-            let res = (this.Xreg
+            let res = (this.ct.Xreg
                 == _MMU.getLogicalByte(
-                this.translateAddress(this.PC+1), this.segment));
-            this.Zflag = (res) ? 1 : 0;
-            this.PC += 3;
+                this.translateAddress(this.ct.PC+1), this.ct.segment));
+            this.ct.Zflag = (res) ? 1 : 0;
+            this.ct.PC += 3;
         }
 
         private branchNotEqual() {
-            TSOS.Devices.hostSetMemCellColor(this.PC+1, 'blue');
-            if (this.Zflag == 0) {
-                this.PC = (this.PC + 2 + _MMU.getLogicalByte(
-                    this.PC+1,
-                    this.segment)) % _MMU.segmentSize;
+            TSOS.Devices.hostSetMemCellColor(this.ct.PC+1, 'blue');
+            if (this.ct.Zflag == 0) {
+                this.ct.PC = (this.ct.PC + 2 + _MMU.getLogicalByte(
+                    this.ct.PC+1,
+                    this.ct.segment)) % _MMU.segmentSize;
             } else {
-                this.PC += 2;
+                this.ct.PC += 2;
             }
         }
 
         private incrementByte() {
-            let addr = this.translateAddress(this.PC+1);
+            let addr = this.translateAddress(this.ct.PC+1);
             // Modulo byte in case of overflow
             _MMU.setLogicalByte(
                 addr,
-                this.segment,
-                (_MMU.getLogicalByte(addr, this.segment)+1) % 0x100);
-            this.PC += 3;
+                this.ct.segment,
+                (_MMU.getLogicalByte(addr, this.ct.segment)+1) % 0x100);
+            this.ct.PC += 3;
         }
 
         private systemCall() {
             _KernelInterruptQueue.enqueue(new Interrupt(SYSCALL_IRQ, null));
-            this.PC += 1;
+            this.ct.PC += 1;
         }
 
         private handleOpCode(oc: number) {
@@ -196,9 +205,9 @@ module TSOS {
                     _StdOut.putText('Invalid opcode: '
                           + oc.toString(16).toUpperCase()
                           + '@'
-                          + this.PC.toString(16).toUpperCase());
+                          + this.ct.PC.toString(16).toUpperCase());
                     // Terminate the program if an invalid opcode is found
-                    _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, null));
+                    _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, this.ct.pid));
                     break;
             }
             
@@ -208,14 +217,13 @@ module TSOS {
 
         /** All the necessary prep for getting a process started.
          */
-        public startExecution(addr: number, segment: number) {
+        public startExecution(ct: Context) {
             // TODO check the address
-            this.PC = addr;
-            TSOS.Devices.hostSetMemCellColor(this.PC, 'green');
+            this.ct = ct;
+            TSOS.Devices.hostSetMemCellColor(this.ct.PC, 'green');
             this.isExecuting = true;
-            this.segment = segment;
             _Status = 'processing';
-            this.IR = _MMU.getLogicalByte(this.PC, this.segment);
+            this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct.segment);
             TSOS.Devices.hostUpdateCpuDisplay();
         }
 
@@ -235,14 +243,14 @@ module TSOS {
 
             this.clearColors();
 
-            this.coloredCells.push(this.PC);
-            this.handleOpCode(_MMU.getLogicalByte(this.PC, this.segment));
-            this.IR = _MMU.getLogicalByte(this.PC, this.segment);
+            this.coloredCells.push(this.ct.PC);
+            this.handleOpCode(_MMU.getLogicalByte(this.ct.PC, this.ct.segment));
+            this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct.segment);
             TSOS.Devices.hostUpdateCpuDisplay();
             _PCB.updatePCB();
             TSOS.Devices.hostUpdatePcbDisplay();
             TSOS.Devices.hostUpdateMemDisplay();
-            TSOS.Devices.hostSetMemCellColor(this.PC, 'green');
+            TSOS.Devices.hostSetMemCellColor(this.ct.PC, 'green');
 
             if (!this.isExecuting) {
                 this.clearColors();

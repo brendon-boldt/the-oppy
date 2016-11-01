@@ -283,7 +283,7 @@ module TSOS {
 
         // Toggle the state of the blinking cursor
         public toggleCursor(state: boolean): void {
-            let x = this.currentXPosition;
+            let x = Math.floor(this.currentXPosition);
             let y = this.currentYPosition - _DefaultFontSize;
             let xSize = 10;
             let ySize = this.fontHeight;

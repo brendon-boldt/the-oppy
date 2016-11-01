@@ -75,6 +75,6 @@ var TSOS;
             }
         }
     }
-    Memory.defaultMemorySize = 0x100;
+    Memory.defaultMemorySize = 0x300;
     TSOS.Memory = Memory;
 })(TSOS || (TSOS = {}));

@@ -86,10 +86,10 @@ var TSOS;
             // Put more here.
         }
         krnSysCallPrintByte() {
-            _StdOut.putText(_CPU.Yreg.toString());
+            _StdOut.putText(_CPU.ct.Yreg.toString());
         }
         krnSysCallPrintBytes() {
-            let addr = _CPU.Yreg;
+            let addr = _CPU.ct.Yreg;
             let str = "";
             let ct = _PCB.getCurrentProcess();
             let value;
@@ -101,7 +101,7 @@ var TSOS;
             _StdOut.putText(str);
         }
         krnSysCall() {
-            switch (_CPU.Xreg) {
+            switch (_CPU.ct.Xreg) {
                 case 1:
                     this.krnSysCallPrintByte();
                     break;
@@ -128,7 +128,7 @@ var TSOS;
                     _StdIn.handleInput();
                     break;
                 case TERM_IRQ:
-                    _PCB.terminateProcess();
+                    _PCB.terminateProcess(params.pid);
                     break;
                 case SYSCALL_IRQ:
                     this.krnSysCall();

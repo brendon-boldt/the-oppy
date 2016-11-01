@@ -4,7 +4,7 @@
 module TSOS {
 export class Memory { 
 
-    public static defaultMemorySize = 0x100;
+    public static defaultMemorySize = 0x300;
 
     constructor(
         private bytes: number[] = Array(Memory.defaultMemorySize)

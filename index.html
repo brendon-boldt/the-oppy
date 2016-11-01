@@ -111,103 +111,105 @@
     </div>
   </div>
 
-<div id="divMain" class='row' style="width:100%;">
+<div class="container" style="width:100%">
+  <div id="divMain" class='row span12' style="">
 
-   <div id="divConsole" class='col-md-5'>
-      <canvas id="display"
-              width="500px"
-              height="500px"
-              tabindex="3">
-      </canvas>
-   </div>
-
-   <div class='col-md-3'>
-       <div class='panel panel-default'>
-            <div class='panel-title'>Memory</div>
-            <div class='panel-body'>
-                <div id='divMemory'>
-                 <table id  ="tableMemory"
-                 ></table>
-                </div>
-            </div>
-       </div>
-
-       <div class='panel panel-default'>
-            <div class='panel-title'>CPU</div>
-            <div class='panel-body'>
-                <div id='divCPU'>
-                    <table id  ="tableCPU">
-                    <tr>
-                        <th>PC</th>
-                        <th>IR</th>
-                        <th>Acc</th>
-                        <th>X</th>
-                        <th>Y</th>
-                        <th>ZF</th>
-                    </tr>
-                    <tr>
-                        <td id='cpuPC'>--</td>
-                        <td id='cpuIR'>--</td>
-                        <td id='cpuAcc'>--</td>
-                        <td id='cpuX'>--</td>
-                        <td id='cpuY'>--</td>
-                        <td id='cpuZF'>-</td>
-                    </tr>
-                 </table>
-                </div>
-            </div>
-       </div>
-
-
-   </div>
-
-   <div class='col-md-4'>
-     <div class='panel panel-default'>
-       <div class='panel-title'>Host Log</div>
-       <div id="divLog" class="panel-body">
-             <textarea readonly name="taHostLog"
-                       id  ="taHostLog"
-                       style="width:100%"
-                       rows="8"
-             ></textarea>
-       </div>
-      </div>
-
-       <div class='panel panel-default'>
-            <div class='panel-title'>PCB</div>
-            <div class='panel-body'>
-                <div id='divPCB'>
-                  <table id  ="tablePCB">
-                        <tr>
-                        <th>PID</th>
-                        <th>State</th>
-                        <th>PC</th>
-                        <th>IR</th>
-                        <th>Acc</th>
-                        <th>X</th>
-                        <th>Y</th>
-                        <th>Z</th>
-                        </tr>
-                 </table>
-                </div>
-            </div>
-       </div>
-
-
-     <div class='panel panel-default'>
-       <div class='panel-title'>User Program Input</div>
-       <div id="divUserProgramInput" class="panel-body">
-             <textarea name="taProgramInput"
-                       id  ="taProgramInput"
-                       rows='4'
-                       style="width:100%"
-             >8D FF FF</textarea>
-             <!-- A program which immediately incurs a segfault and
-                 gets terminated by the MMU. -->
-       </div>
+     <div id="divConsole" class='col-md-5'>
+        <canvas id="display"
+                width="500px"
+                height="500px"
+                tabindex="3">
+        </canvas>
      </div>
 
-   </div>
+     <div class='col-md-3'>
+         <div class='panel panel-default'>
+              <div class='panel-title'>Memory</div>
+              <div class='panel-body'>
+                  <div id='divMemory'>
+                   <table id  ="tableMemory"
+                   ></table>
+                  </div>
+              </div>
+         </div>
+
+         <div class='panel panel-default'>
+              <div class='panel-title'>CPU</div>
+              <div class='panel-body'>
+                  <div id='divCPU'>
+                      <table id  ="tableCPU">
+                      <tr>
+                          <th>PC</th>
+                          <th>IR</th>
+                          <th>Acc</th>
+                          <th>X</th>
+                          <th>Y</th>
+                          <th>ZF</th>
+                      </tr>
+                      <tr>
+                          <td id='cpuPC'>--</td>
+                          <td id='cpuIR'>--</td>
+                          <td id='cpuAcc'>--</td>
+                          <td id='cpuX'>--</td>
+                          <td id='cpuY'>--</td>
+                          <td id='cpuZF'>-</td>
+                      </tr>
+                   </table>
+                  </div>
+              </div>
+         </div>
+
+
+     </div>
+
+     <div class='col-md-4'>
+       <div class='panel panel-default'>
+         <div class='panel-title'>Host Log</div>
+         <div id="divLog" class="panel-body">
+               <textarea readonly name="taHostLog"
+                         id  ="taHostLog"
+                         style="width:100%"
+                         rows="8"
+               ></textarea>
+         </div>
+        </div>
+
+         <div class='panel panel-default'>
+              <div class='panel-title'>PCB</div>
+              <div class='panel-body'>
+                  <div id='divPCB'>
+                    <table id  ="tablePCB">
+                          <tr>
+                          <th>PID</th>
+                          <th>State</th>
+                          <th>PC</th>
+                          <th>IR</th>
+                          <th>Acc</th>
+                          <th>X</th>
+                          <th>Y</th>
+                          <th>Z</th>
+                          </tr>
+                   </table>
+                  </div>
+              </div>
+         </div>
+
+
+       <div class='panel panel-default'>
+         <div class='panel-title'>User Program Input</div>
+         <div id="divUserProgramInput" class="panel-body">
+               <textarea name="taProgramInput"
+                         id  ="taProgramInput"
+                         rows='4'
+                         style="width:100%"
+               >A9 00 8D 7B 00 A9 00 8D 7B 00 A9 00 8D 7C 00 A9 00 8D 7C 00 A9 01 8D 7A 00 A2 00 EC 7A 00 D0 39 A0 7D A2 02 FF AC 7B 00 A2 01 FF AD 7B 00 8D 7A 00 A9 01 6D 7A 00 8D 7B 00 A9 03 AE 7B 00 8D 7A 00 A9 00 EC 7A 00 D0 02 A9 01 8D 7A 00 A2 01 EC 7A 00 D0 05 A9 01 8D 7C 00 A9 00 AE 7C 00 8D 7A 00 A9 00 EC 7A 00 D0 02 A9 01 8D 7A 00 A2 00 EC 7A 00 D0 AC A0 7F A2 02 FF 00 00 00 00 61 00 61 64 6F 6E 65 00</textarea>
+               <!-- A program which immediately incurs a segfault and
+                   gets terminated by the MMU. -->
+         </div>
+       </div>
+
+     </div>
+  </div>
 </div>
 
 <p class="footerText" style="clear:both;">

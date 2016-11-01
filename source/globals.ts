@@ -12,9 +12,9 @@
 // Global CONSTANTS (TypeScript 1.5 introduced const. Very cool.)
 //
 const APP_NAME: string    = "The Oppy";  
-const APP_VERSION: string = "0.03"; 
+const APP_VERSION: string = "0.04"; 
 
-const CPU_CLOCK_INTERVAL: number = 10//100;   // This is in ms (milliseconds) so 1000 = 1 second.
+const CPU_CLOCK_INTERVAL: number = 20;//100;   // This is in ms (milliseconds) so 1000 = 1 second.
 
 const TIMER_IRQ: number = 0;  // Pages 23 (timer), 9 (interrupts), and 561 (interrupt priority).
                               // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
@@ -85,8 +85,12 @@ var _hardwareClockID: number = null;
 var Glados: any = null;  // This is the function Glados() in glados.js on Labouseur.com.
 var _GLaDOS: any = null; // If the above is linked in, this is the instantiated instance of Glados.
 
+var displayRatio = 5/12;
+var displayPadding = 30;
 var onDocumentLoad = function() {
 	TSOS.Control.hostInit();
-  _DisplayXRes = (<any> document.getElementById('display')).width;
+  _DisplayXRes = (<any> document.body).clientWidth * displayRatio - displayPadding;
+  _DisplayXRes = Math.floor(_DisplayXRes);
+  (<any> document.getElementById('display')).width = _DisplayXRes;
   _DisplayYRes = (<any> document.getElementById('display')).height;
 };
