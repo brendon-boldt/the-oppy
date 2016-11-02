@@ -30,7 +30,7 @@ var TSOS;
                     this.rrCounter += 1;
             }
             this.rrCounter = this.rrCounter % procs.length;
-            _PCB.pauseExecution();
+            //_PCB.pauseExecution();
             return procs[this.rrCounter];
         }
         roundRobin() {
@@ -39,7 +39,7 @@ var TSOS;
                 if (this.quantumCounter > this.quantum) {
                     this.quantumCounter = 0;
                     let ct = this.getNextRRProcess(procs);
-                    this.CPU.startExecution(ct);
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CT_SWITCH_IRQ, { pid: ct.pid }));
                 }
             }
             this.quantumCounter++;

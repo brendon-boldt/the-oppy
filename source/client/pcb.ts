@@ -48,15 +48,6 @@ module TSOS {
         /** Update the PCB entry corresponding to the current process.
          */
         public updatePCB() {
-            /*
-            let ct = this.getCurrentProcess();
-            ct.PC = _CPU.ct.PC;
-            ct.IR = _CPU.ct.IR;
-            ct.Acc = _CPU.ct.Acc;
-            ct.Xreg = _CPU.ct.Xreg;
-            ct.Yreg = _CPU.ct.Yreg;
-            ct.Zflag = _CPU.ct.Zflag;
-            */
         }
 
         /** Get list of processes currently ready to be executed.
@@ -132,7 +123,7 @@ module TSOS {
          * Set the segment and begin executing.
          * TODO Will add actually passing the context to the CPU for switching
          */
-        public runProcess(pid: number): void {
+        public runProcess(pid): void {
             console.log("Running: " + pid);
             let ct = this.getProcessByPid(pid);
             let segNum = ct.segment;
@@ -149,11 +140,23 @@ module TSOS {
             _CPU.ct.state = STATE_WAITING;
         }
 
+        public contextSwitch(params): void {
+            let pid = params.pid;
+            let ct = this.getProcessByPid(params.pid);
+            if (!ct) {
+                _Kernel.krnTrapError("Attempted to context switch to non-existent process.");
+            } else {
+                this.pauseExecution();
+                _CPU.startExecution(ct);
+            }
+        }
+
         /**
          * If pid == -1, terminate the currently running process
          * This should ONLY be called using the TErM_IRQ interrupt -- ONLY
          */
-        public terminateProcess(pid: number): void {
+        public terminateProcess(params): void {
+            let pid = params.pid;
             let ct: Context = this.getProcessByPid(pid);
 
             console.log("Terminating: " + pid);            

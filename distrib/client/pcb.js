@@ -39,15 +39,6 @@ var TSOS;
         /** Update the PCB entry corresponding to the current process.
          */
         updatePCB() {
-            /*
-            let ct = this.getCurrentProcess();
-            ct.PC = _CPU.ct.PC;
-            ct.IR = _CPU.ct.IR;
-            ct.Acc = _CPU.ct.Acc;
-            ct.Xreg = _CPU.ct.Xreg;
-            ct.Yreg = _CPU.ct.Yreg;
-            ct.Zflag = _CPU.ct.Zflag;
-            */
         }
         /** Get list of processes currently ready to be executed.
          */
@@ -133,11 +124,23 @@ var TSOS;
         pauseExecution() {
             _CPU.ct.state = STATE_WAITING;
         }
+        contextSwitch(params) {
+            let pid = params.pid;
+            let ct = this.getProcessByPid(params.pid);
+            if (!ct) {
+                _Kernel.krnTrapError("Attempted to context switch to non-existent process.");
+            }
+            else {
+                this.pauseExecution();
+                _CPU.startExecution(ct);
+            }
+        }
         /**
          * If pid == -1, terminate the currently running process
          * This should ONLY be called using the TErM_IRQ interrupt -- ONLY
          */
-        terminateProcess(pid) {
+        terminateProcess(params) {
+            let pid = params.pid;
             let ct = this.getProcessByPid(pid);
             console.log("Terminating: " + pid);
             if (ct) {

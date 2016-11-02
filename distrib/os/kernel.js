@@ -115,6 +115,8 @@ var TSOS;
                 default:
             }
         }
+        krnCtSwitch(params) {
+        }
         krnInterruptHandler(irq, params) {
             // Trace our entrance here so we can compute Interrupt
             // Latency by analyzing the log file later on. Page 766.
@@ -125,17 +127,20 @@ var TSOS;
             //       Maybe the hardware simulation will grow to support/require that in the future.
             switch (irq) {
                 case TIMER_IRQ:
-                    this.krnTimerISR(); // Kernel built-in routine for timers (not the clock).
+                    this.krnTimerISR();
                     break;
                 case KEYBOARD_IRQ:
                     _krnKeyboardDriver.isr(params); // Kernel mode device driver
                     _StdIn.handleInput();
                     break;
                 case TERM_IRQ:
-                    _PCB.terminateProcess(params.pid);
+                    _PCB.terminateProcess(params);
                     break;
                 case SYSCALL_IRQ:
                     this.krnSysCall();
+                    break;
+                case CT_SWITCH_IRQ:
+                    _PCB.contextSwitch(params);
                     break;
                 default:
                     this.krnTrapError("Invalid Interrupt Request. irq=" + irq + " params=[" + params + "]");
