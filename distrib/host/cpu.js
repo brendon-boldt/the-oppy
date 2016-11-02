@@ -210,6 +210,7 @@ var TSOS;
         }
         cycle() {
             _Kernel.krnTrace('CPU cycle');
+            _Scheduler.burstCounter++;
             this.clearColors();
             this.coloredCells.push(this.ct.getAbsPC());
             this.handleOpCode(_MMU.getLogicalByte(this.ct.PC, this.ct.segment));

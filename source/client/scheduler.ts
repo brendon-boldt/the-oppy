@@ -10,13 +10,22 @@ module TSOS {
 
         public isActive: boolean = true;
 
-        private quantumCounter: number = 0;
+        public burstCounter: number = 0;
         private rrCounter: number = 0xffff;
         public quantum: number = 6;
+        public mode: Symbol = MODE_ROUND_ROBIN;
 
         public cycle(): void {
-            this.roundRobin();
-            //this.firstComeFristServe();
+            switch (this.mode) {
+                case MODE_ROUND_ROBIN:
+                    this.roundRobin();
+                    break;
+                case MODE_FCFS:
+                    this.firstComeFristServe();
+                    break;
+                default:
+                    this.roundRobin();
+            }
         }
 
         private firstComeFristServe(): void {
@@ -44,17 +53,21 @@ module TSOS {
         private roundRobin(): void {
             let procs = _PCB.getProcessesByState(STATE_WAITING | STATE_EXECUTING);
             if (procs.length > 0) {
-                if (this.quantumCounter > this.quantum) {
-                    this.quantumCounter = 0;
+                if (this.burstCounter >= this.quantum) {
+                    this.burstCounter = 0;
                     let ct = this.getNextRRProcess(procs);
+                    console.log("Switching: " + ct.pid);
                     _KernelInterruptQueue.enqueue(
                         new Interrupt(CT_SWITCH_IRQ,
                         {pid: ct.pid}));
 
                     //this.CPU.startExecution(ct);
                 }
+            } else {
+                // Set burstCounter to a big number so the next process
+                // automatically context switches in.
+                this.burstCounter = 0xffff;
             }
-            this.quantumCounter++;
         }
     }
 }

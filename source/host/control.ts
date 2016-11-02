@@ -115,6 +115,7 @@ module TSOS {
             _Scheduler = new Scheduler(_CPU);
             _Memory = new Memory();
             TSOS.Devices.hostUpdateMemDisplay();
+            TSOS.Devices.hostUpdateScheduleDisplay();
             _PCB = new Pcb();
             _MMU = new Mmu();
 

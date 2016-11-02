@@ -205,6 +205,21 @@ module TSOS {
             $('#cpuZF').html(_CPU.ct.Zflag+'');            
         }
 
+        public static hostUpdateScheduleDisplay(): void {
+            let str: string;
+            switch (_Scheduler.mode) {
+                case MODE_FCFS:
+                    str = "FCFS";
+                    break;
+                case MODE_ROUND_ROBIN:
+                    str = "Round Robin";
+                    break;
+                default:
+                    str = "---";
+            }
+            $('#divMode').html(str);
+        }
+
         //
         // Keyboard Interrupt, a HARDWARE Interrupt Request. (See pages 560-561 in our text book.)
         //

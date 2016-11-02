@@ -32,6 +32,31 @@ module TSOS {
 
 
             // Load the command list.
+            sc = new ShellCommand(this.shellSMode,
+                                  "smode",
+                                  "<rr | fcfs>  - Changes the scheduler mode.");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellClearmem,
+                                  "clearmem",
+                                  " - Clears all memory segments.");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellQuantum,
+                                  "quantum",
+                                  "<int> - Changes the round robin quantum.");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellPs,
+                                  "ps",
+                                  " - Lists the current process states.");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellKill,
+                                  "kill",
+                                  "<pid> - Kills specified process.");
+            this.commandList[this.commandList.length] = sc;
+
             sc = new ShellCommand(this.shellRunall,
                                   "runall",
                                   " - Runs all loaded processes.");
@@ -39,7 +64,7 @@ module TSOS {
 
             sc = new ShellCommand(this.shellRun,
                                   "run",
-                                  " <pid> - Runs the process specified by <pid>.");
+                                  "<pid> - Runs the process specified by <pid>.");
             this.commandList[this.commandList.length] = sc;
 
             sc = new ShellCommand(this.shellPanic,
@@ -184,17 +209,13 @@ module TSOS {
             }
         }
 
-        // Note: args is an option parameter, ergo the ? which allows TypeScript to understand that.
         public execute(fn, args?) {
-            // We just got a command, so advance the line...
             _StdOut.advanceLine();
-            // ... call the command function passing in the args with some über-cool functional programming ...
             fn(args);
             // Check to see if we need to advance the line again
             if (_StdOut.currentXPosition > 0) {
                 _StdOut.advanceLine();
             }
-            // ... and finally write the prompt again.
             //if ((fn != this.shellRun && fn != this.shellRunall)
             //|| !_CPU.isExecuting)
             if (_Status != 'error' && _Status != 'off' && _Status != 'processing')
@@ -230,11 +251,33 @@ module TSOS {
             return retVal;
         }
 
-        //
-        // Shell Command Functions.  Kinda not part of Shell() class exactly, but
-        // called from here, so kept here to avoid violating the law of least astonishment.
-        //
-        //
+
+        public shellQuantum(args): void {
+        }
+
+        public shellKill(args): void {
+        }
+
+        public shellClearmem(): void {
+        }
+
+        public shellPs(): void {
+        }
+
+        public shellSMode(args): void {
+            switch (args[0].toLowerCase()) {
+                case 'fcfs':
+                    _Scheduler.mode = MODE_FCFS;
+                    break;
+                case 'rr':
+                    _Scheduler.mode = MODE_ROUND_ROBIN;
+                    break;
+                default:
+                    _StdOut.putText("Invalid mode code.")
+                    _StdOut.advanceLine();
+            }
+            TSOS.Devices.hostUpdateScheduleDisplay();
+        }
 
         public shellRunall(): void {
             _PCB.runAll();

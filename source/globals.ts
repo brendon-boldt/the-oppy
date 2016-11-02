@@ -37,11 +37,14 @@ var _PCB: TSOS.Pcb;
 var _MMU: TSOS.Mmu;
 
 // Process states
-var STATE_EXECUTING = 0x1;
-var STATE_READY     = 0x2; 
-var STATE_WAITING   = 0x4;
+const STATE_EXECUTING    = 0x1;
+const STATE_READY        = 0x2; 
+const STATE_WAITING      = 0x4;
+const STATE_TERMINATED   = 0x8;
 
 var _Scheduler: TSOS.Scheduler;
+const MODE_FCFS = Symbol();
+const MODE_ROUND_ROBIN = Symbol();
 
 // Overall OS status
 var _Status = 'off';
@@ -89,7 +92,7 @@ var Glados: any = null;  // This is the function Glados() in glados.js on Labous
 var _GLaDOS: any = null; // If the above is linked in, this is the instantiated instance of Glados.
 
 var displayRatio = 5/12;
-var displayPadding = 30;
+var displayPadding = 50;
 var onDocumentLoad = function() {
 	TSOS.Control.hostInit();
   _DisplayXRes = (<any> document.body).clientWidth * displayRatio - displayPadding;

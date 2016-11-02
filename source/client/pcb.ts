@@ -144,7 +144,8 @@ module TSOS {
             let pid = params.pid;
             let ct = this.getProcessByPid(params.pid);
             if (!ct) {
-                _Kernel.krnTrapError("Attempted to context switch to non-existent process.");
+                //_Kernel.krnTrapError("Attempted to context switch to non-existent process.");
+                _Kernel.krnTrace("Could not context switch to PID " + pid);
             } else {
                 this.pauseExecution();
                 _CPU.startExecution(ct);
@@ -163,6 +164,7 @@ module TSOS {
             if (ct) { // If the proper context was found
                 // Clear the segment
                 _MMU.clearSegment(ct.segment); 
+                ct.state = STATE_TERMINATED;
                 let index: number;
                 for (let i = 0; i < this.processes.length; i++) {
                     if (this.processes[i].pid == pid)

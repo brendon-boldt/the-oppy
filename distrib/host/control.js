@@ -92,6 +92,7 @@ var TSOS;
             _Scheduler = new TSOS.Scheduler(_CPU);
             _Memory = new TSOS.Memory();
             TSOS.Devices.hostUpdateMemDisplay();
+            TSOS.Devices.hostUpdateScheduleDisplay();
             _PCB = new TSOS.Pcb();
             _MMU = new TSOS.Mmu();
             // ... then set the host clock pulse ...

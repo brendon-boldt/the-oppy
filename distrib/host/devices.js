@@ -183,6 +183,20 @@ var TSOS;
             $('#cpuY').html(Devices.formatValue(_CPU.ct.Yreg, 2));
             $('#cpuZF').html(_CPU.ct.Zflag + '');
         }
+        static hostUpdateScheduleDisplay() {
+            let str;
+            switch (_Scheduler.mode) {
+                case MODE_FCFS:
+                    str = "FCFS";
+                    break;
+                case MODE_ROUND_ROBIN:
+                    str = "Round Robin";
+                    break;
+                default:
+                    str = "---";
+            }
+            $('#divMode').html(str);
+        }
         //
         // Keyboard Interrupt, a HARDWARE Interrupt Request. (See pages 560-561 in our text book.)
         //

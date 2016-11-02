@@ -252,6 +252,7 @@ module TSOS {
 
         public cycle(): void {
             _Kernel.krnTrace('CPU cycle');
+            _Scheduler.burstCounter++;
 
             this.clearColors();
 

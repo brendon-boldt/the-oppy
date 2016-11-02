@@ -31,10 +31,13 @@ var _Memory;
 var _PCB;
 var _MMU;
 // Process states
-var STATE_EXECUTING = 0x1;
-var STATE_READY = 0x2;
-var STATE_WAITING = 0x4;
+const STATE_EXECUTING = 0x1;
+const STATE_READY = 0x2;
+const STATE_WAITING = 0x4;
+const STATE_TERMINATED = 0x8;
 var _Scheduler;
+const MODE_FCFS = Symbol();
+const MODE_ROUND_ROBIN = Symbol();
 // Overall OS status
 var _Status = 'off';
 var _OSclock = 0; // Page 23.
@@ -67,7 +70,7 @@ var _hardwareClockID = null;
 var Glados = null; // This is the function Glados() in glados.js on Labouseur.com.
 var _GLaDOS = null; // If the above is linked in, this is the instantiated instance of Glados.
 var displayRatio = 5 / 12;
-var displayPadding = 30;
+var displayPadding = 50;
 var onDocumentLoad = function () {
     TSOS.Control.hostInit();
     _DisplayXRes = document.body.clientWidth * displayRatio - displayPadding;
