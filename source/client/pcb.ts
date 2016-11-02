@@ -16,7 +16,11 @@ module TSOS {
 
         public pid: number;
         public IR: number;
-        public state: symbol = STATE_READY;
+        public state: number = STATE_READY;
+
+        public getAbsPC(): number {
+            return this.PC + this.segment * _MMU.segmentSize;
+        }
     }
 
     export class Pcb {
@@ -57,10 +61,10 @@ module TSOS {
 
         /** Get list of processes currently ready to be executed.
          */
-        public getProcessesByState(state): Context[] {
+        public getProcessesByState(state: number): Context[] {
             let cts: Context[] = [];
             for (let i = 0; i < this.processes.length; i++) {
-                if (this.processes[i].state == state)
+                if ((this.processes[i].state & state) != 0)
                     cts.push(this.processes[i]);
             }
             return cts;
@@ -129,16 +133,20 @@ module TSOS {
          * TODO Will add actually passing the context to the CPU for switching
          */
         public runProcess(pid: number): void {
+            console.log("Running: " + pid);
             let ct = this.getProcessByPid(pid);
             let segNum = ct.segment;
-            ct.state = STATE_EXECUTING;
-            _CPU.startExecution(ct);
+            ct.state = STATE_WAITING;
         }
 
         public runAll(): void {
             for (let i = 0; i < this.processes.length; i++) {
                 this.runProcess(this.processes[i].pid);
             }
+        }
+
+        public pauseExecution(): void {
+            _CPU.ct.state = STATE_WAITING;
         }
 
         /**
@@ -159,18 +167,25 @@ module TSOS {
                 }
                 // Remove the context from the PCB
                 this.processes.splice(index, 1)
+                _CPU.stopExecution();
+                //_CPU.ct = undefined;
                 // Stop executing and update various displays
-                _CPU.isExecuting = false;
+                //_CPU.isExecuting = false;
                 _CPU.clearColors();
                 Devices.hostUpdatePcbDisplay();
                 _Status = 'idle';
             } else {
+                console.log(new Error().stack);
                 _StdOut.putText("PID: " + pid + " does not exist.");
                 _StdOut.advanceLine();
             }
-            if (_PCB.getProcessesByState(STATE_WAITING).length == 0) {
+            
+            let waitList = _PCB.getProcessesByState(STATE_WAITING | STATE_EXECUTING);
+            if (waitList.length == 0) {
                 _StdOut.advanceLine();
                 _OsShell.putPrompt();
+            } else {
+                //this.runProcess(waitList[0].pid);
             }
         }
 

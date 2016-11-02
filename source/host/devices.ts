@@ -154,7 +154,7 @@ module TSOS {
             }
         }
         
-        public static translateState(state: Symbol): string {
+        public static translateState(state: number): string {
             switch (state) {
                 case STATE_READY:
                     return 'Ready';

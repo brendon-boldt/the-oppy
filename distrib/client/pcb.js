@@ -14,6 +14,9 @@ var TSOS;
             this.segment = segment;
             this.state = STATE_READY;
         }
+        getAbsPC() {
+            return this.PC + this.segment * _MMU.segmentSize;
+        }
     }
     TSOS.Context = Context;
     class Pcb {
@@ -51,7 +54,7 @@ var TSOS;
         getProcessesByState(state) {
             let cts = [];
             for (let i = 0; i < this.processes.length; i++) {
-                if (this.processes[i].state == state)
+                if ((this.processes[i].state & state) != 0)
                     cts.push(this.processes[i]);
             }
             return cts;
@@ -117,15 +120,18 @@ var TSOS;
          * TODO Will add actually passing the context to the CPU for switching
          */
         runProcess(pid) {
+            console.log("Running: " + pid);
             let ct = this.getProcessByPid(pid);
             let segNum = ct.segment;
-            ct.state = STATE_EXECUTING;
-            _CPU.startExecution(ct);
+            ct.state = STATE_WAITING;
         }
         runAll() {
             for (let i = 0; i < this.processes.length; i++) {
                 this.runProcess(this.processes[i].pid);
             }
+        }
+        pauseExecution() {
+            _CPU.ct.state = STATE_WAITING;
         }
         /**
          * If pid == -1, terminate the currently running process
@@ -144,19 +150,25 @@ var TSOS;
                 }
                 // Remove the context from the PCB
                 this.processes.splice(index, 1);
+                _CPU.stopExecution();
+                //_CPU.ct = undefined;
                 // Stop executing and update various displays
-                _CPU.isExecuting = false;
+                //_CPU.isExecuting = false;
                 _CPU.clearColors();
                 TSOS.Devices.hostUpdatePcbDisplay();
                 _Status = 'idle';
             }
             else {
+                console.log(new Error().stack);
                 _StdOut.putText("PID: " + pid + " does not exist.");
                 _StdOut.advanceLine();
             }
-            if (_PCB.getProcessesByState(STATE_WAITING).length == 0) {
+            let waitList = _PCB.getProcessesByState(STATE_WAITING | STATE_EXECUTING);
+            if (waitList.length == 0) {
                 _StdOut.advanceLine();
                 _OsShell.putPrompt();
+            }
+            else {
             }
         }
     }

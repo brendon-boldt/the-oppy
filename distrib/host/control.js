@@ -89,6 +89,7 @@ var TSOS;
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
             _CPU = new TSOS.Cpu();
             _CPU.init();
+            _Scheduler = new TSOS.Scheduler(_CPU);
             _Memory = new TSOS.Memory();
             TSOS.Devices.hostUpdateMemDisplay();
             _PCB = new TSOS.Pcb();

@@ -65,11 +65,14 @@ module TSOS {
             this.krnTrace("end shutdown OS");
             if (_Status == 'idle')
               _Status = 'off';
-            
+            _CPU.stopExecution();
+            _Scheduler.isActive = false;
         }
 
 
         public krnOnCPUClockPulse() {
+            if (_Scheduler.isActive)
+                _Scheduler.cycle();
             if (_KernelInterruptQueue.getSize() > 0) {
                 // TODO: Implement a priority queue based on the IRQ
                 // number/id to enforce interrupt priority.

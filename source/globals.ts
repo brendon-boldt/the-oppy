@@ -36,9 +36,11 @@ var _PCB: TSOS.Pcb;
 var _MMU: TSOS.Mmu;
 
 // Process states
-var STATE_EXECUTING = Symbol();
-var STATE_READY     = Symbol();
-var STATE_WAITING   = Symbol();
+var STATE_EXECUTING = 0x1;
+var STATE_READY     = 0x2; 
+var STATE_WAITING   = 0x4;
+
+var _Scheduler: TSOS.Scheduler;
 
 // Overall OS status
 var _Status = 'off';

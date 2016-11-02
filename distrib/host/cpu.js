@@ -58,7 +58,7 @@ var TSOS;
          * Below are the opcode methods.
          */
         loadAccConstant() {
-            this.ct.Acc = _Memory.getByte(this.ct.PC + 1);
+            this.ct.Acc = _MMU.getLogicalByte(this.ct.PC + 1, this.ct.segment);
             this.ct.PC += 2;
         }
         loadAccMemory() {
@@ -70,6 +70,7 @@ var TSOS;
         }
         halt() {
             _Status = 'idle';
+            //console.log("Halting: " + this.ct.pid);
             _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, { pid: this.ct.pid }));
         }
         storeAccMemory() {
@@ -83,7 +84,7 @@ var TSOS;
             this.ct.PC += 3;
         }
         loadXConstant() {
-            this.ct.Xreg = _Memory.getByte(this.ct.PC + 1);
+            this.ct.Xreg = _MMU.getLogicalByte(this.ct.PC + 1, this.ct.segment);
             this.ct.PC += 2;
         }
         loadXMem() {
@@ -91,7 +92,7 @@ var TSOS;
             this.ct.PC += 3;
         }
         loadYConstant() {
-            this.ct.Yreg = _Memory.getByte(this.ct.PC + 1);
+            this.ct.Yreg = _MMU.getLogicalByte(this.ct.PC + 1, this.ct.segment);
             this.ct.PC += 2;
         }
         loadYMem() {
@@ -171,7 +172,7 @@ var TSOS;
                     _StdOut.putText('Invalid opcode: '
                         + oc.toString(16).toUpperCase()
                         + '@'
-                        + this.ct.PC.toString(16).toUpperCase());
+                        + this.ct.getAbsPC().toString(16).toUpperCase());
                     // Terminate the program if an invalid opcode is found
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, this.ct.pid));
                     break;
@@ -182,12 +183,22 @@ var TSOS;
          */
         startExecution(ct) {
             // TODO check the address
+            //console.log("Executing");
+            //console.log(ct);
+            if (ct == undefined) {
+                _Kernel.krnTrapError("Undefined context passed to CPU.");
+            }
             this.ct = ct;
-            TSOS.Devices.hostSetMemCellColor(this.ct.PC, 'green');
+            TSOS.Devices.hostSetMemCellColor(this.ct.getAbsPC(), 'green');
             this.isExecuting = true;
             _Status = 'processing';
+            this.ct.state = STATE_EXECUTING;
             this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct.segment);
             TSOS.Devices.hostUpdateCpuDisplay();
+        }
+        stopExecution() {
+            this.isExecuting = false;
+            //console.log(new Error().stack);
         }
         /** Remove the coloring from cells.
          */
@@ -200,14 +211,15 @@ var TSOS;
         cycle() {
             _Kernel.krnTrace('CPU cycle');
             this.clearColors();
-            this.coloredCells.push(this.ct.PC);
+            this.coloredCells.push(this.ct.getAbsPC());
             this.handleOpCode(_MMU.getLogicalByte(this.ct.PC, this.ct.segment));
             this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct.segment);
+            //console.log("Executing @ " + this.ct.getAbsPC().toString(0x10));
             TSOS.Devices.hostUpdateCpuDisplay();
             _PCB.updatePCB();
             TSOS.Devices.hostUpdatePcbDisplay();
             TSOS.Devices.hostUpdateMemDisplay();
-            TSOS.Devices.hostSetMemCellColor(this.ct.PC, 'green');
+            TSOS.Devices.hostSetMemCellColor(this.ct.getAbsPC(), 'green');
             if (!this.isExecuting) {
                 this.clearColors();
             }

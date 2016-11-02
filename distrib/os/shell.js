@@ -114,6 +114,10 @@ var TSOS;
                 else if (this.apologies.indexOf("[" + cmd + "]") >= 0) {
                     this.execute(this.shellApology);
                 }
+                else if (cmd.length == 0) {
+                    _StdOut.advanceLine();
+                    this.putPrompt();
+                }
                 else {
                     this.execute(this.shellInvalidCommand);
                 }
@@ -130,6 +134,8 @@ var TSOS;
                 _StdOut.advanceLine();
             }
             // ... and finally write the prompt again.
+            //if ((fn != this.shellRun && fn != this.shellRunall)
+            //|| !_CPU.isExecuting)
             if (_Status != 'error' && _Status != 'off' && _Status != 'processing')
                 this.putPrompt();
         }
@@ -177,6 +183,7 @@ var TSOS;
             else {
                 // TODO make error more specific
                 _StdOut.putText("Process " + pid + " cannot be run.");
+                this.putPrompt();
             }
         }
         // Check if something is a printable character

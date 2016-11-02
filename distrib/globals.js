@@ -30,9 +30,10 @@ var _Memory;
 var _PCB;
 var _MMU;
 // Process states
-var STATE_EXECUTING = Symbol();
-var STATE_READY = Symbol();
-var STATE_WAITING = Symbol();
+var STATE_EXECUTING = 0x1;
+var STATE_READY = 0x2;
+var STATE_WAITING = 0x4;
+var _Scheduler;
 // Overall OS status
 var _Status = 'off';
 var _OSclock = 0; // Page 23.

@@ -112,6 +112,7 @@ module TSOS {
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
             _CPU = new Cpu();
             _CPU.init();
+            _Scheduler = new Scheduler(_CPU);
             _Memory = new Memory();
             TSOS.Devices.hostUpdateMemDisplay();
             _PCB = new Pcb();
