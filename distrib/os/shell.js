@@ -205,7 +205,31 @@ var TSOS;
                 _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, { pid: cts[i].pid, newline: false }));
             }
         }
+        static stateToString(state) {
+            let str = "---";
+            switch (state) {
+                case STATE_READY:
+                    str = "ready";
+                    break;
+                case STATE_WAITING:
+                    str = "wating";
+                    break;
+                case STATE_EXECUTING:
+                    str = "executing";
+                    break;
+                case STATE_TERMINATED:
+                    str = "terminated";
+                    break;
+            }
+            return str;
+        }
         shellPs() {
+            let cts = _PCB.getProcessesByState(0xff);
+            for (let i = 0; i < cts.length; i++) {
+                _StdOut.putText(cts[i].pid + " "
+                    + Shell.stateToString(cts[i].state));
+                _StdOut.advanceLine();
+            }
         }
         shellSMode(args) {
             switch (args[0].toLowerCase()) {

@@ -209,7 +209,6 @@ module TSOS {
                     _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, this.ct.pid));
                     break;
             }
-            
         }
 
         /** All the necessary prep for getting a process started.
