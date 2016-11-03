@@ -26,6 +26,8 @@ var TSOS;
             // Load the command list.
             sc = new TSOS.ShellCommand(this.shellSMode, "smode", "<rr | fcfs>  - Changes the scheduler mode.");
             this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellClearmem, "killall", " - Alias of clearmem.");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellClearmem, "clearmem", " - Clears all memory segments.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellQuantum, "quantum", "<int> - Changes the round robin quantum.");
@@ -169,10 +171,39 @@ var TSOS;
             return retVal;
         }
         shellQuantum(args) {
+            let q = parseInt(args[0]);
+            if (q > 0) {
+                _Scheduler.quantum = q;
+            }
+            else {
+                _StdOut.putText("Invalid quantum value.");
+                _StdOut.advanceLine();
+            }
         }
         shellKill(args) {
+            let pid = parseInt(args[0]);
+            if (pid >= 0) {
+                let ct = _PCB.getProcessByPid(pid);
+                if (ct) {
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, { pid: pid }));
+                }
+                else {
+                    _StdOut.putText("No process with PID " + pid + " found.");
+                    _StdOut.advanceLine();
+                }
+            }
+            else {
+                _StdOut.putText("Invalid PID value.");
+                _StdOut.advanceLine();
+            }
         }
         shellClearmem() {
+            let cts = _PCB.getProcessesByState(STATE_READY | STATE_WAITING | STATE_EXECUTING);
+            for (let i = 0; i < cts.length; i++) {
+                // Clearing memory requires that we remove the processes too.
+                // Set newline to false so we do not get new prompt lines
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, { pid: cts[i].pid, newline: false }));
+            }
         }
         shellPs() {
         }

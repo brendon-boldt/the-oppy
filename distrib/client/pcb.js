@@ -142,6 +142,7 @@ var TSOS;
          */
         terminateProcess(params) {
             let pid = params.pid;
+            let newline = params.newline;
             let ct = this.getProcessByPid(pid);
             console.log("Terminating: " + pid);
             if (ct) {
@@ -169,7 +170,7 @@ var TSOS;
                 _StdOut.advanceLine();
             }
             let waitList = _PCB.getProcessesByState(STATE_WAITING | STATE_EXECUTING);
-            if (waitList.length == 0) {
+            if (params.newline !== false && waitList.length == 0) {
                 _StdOut.advanceLine();
                 _OsShell.putPrompt();
             }

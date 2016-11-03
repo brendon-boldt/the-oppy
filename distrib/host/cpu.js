@@ -49,8 +49,6 @@ var TSOS;
         /** Translate the little endian address.
          */
         translateAddress(addr) {
-            //TSOS.Devices.hostSetMemCellColor(this.PC+1, 'blue');
-            //TSOS.Devices.hostSetMemCellColor(this.PC+2, 'blue');
             return _MMU.getLogicalByte(addr + 1, this.ct.segment) * 0x100
                 + _MMU.getLogicalByte(addr, this.ct.segment);
         }
@@ -178,7 +176,6 @@ var TSOS;
                     break;
             }
         }
-        // TODO add set context
         /** All the necessary prep for getting a process started.
          */
         startExecution(ct) {
@@ -189,16 +186,25 @@ var TSOS;
                 _Kernel.krnTrapError("Undefined context passed to CPU.");
             }
             this.ct = ct;
-            TSOS.Devices.hostSetMemCellColor(this.ct.getAbsPC(), 'green');
             this.isExecuting = true;
             _Status = 'processing';
             this.ct.state = STATE_EXECUTING;
             this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct.segment);
+            this.colorCells();
             TSOS.Devices.hostUpdateCpuDisplay();
         }
         stopExecution() {
             this.isExecuting = false;
             //console.log(new Error().stack);
+        }
+        colorCells() {
+            let num = Cpu.highlight[this.ct.IR];
+            if (num >= 2)
+                TSOS.Devices.hostSetMemCellColor(this.ct.PC + 2, '#1e90ff');
+            if (num >= 1)
+                TSOS.Devices.hostSetMemCellColor(this.ct.PC + 1, '#1e90ff');
+            TSOS.Devices.hostSetMemCellColor(this.ct.PC, 'blue');
+            TSOS.Devices.hostSetMemScroll(this.ct.PC);
         }
         /** Remove the coloring from cells.
          */
@@ -220,7 +226,7 @@ var TSOS;
             _PCB.updatePCB();
             TSOS.Devices.hostUpdatePcbDisplay();
             TSOS.Devices.hostUpdateMemDisplay();
-            TSOS.Devices.hostSetMemCellColor(this.ct.getAbsPC(), 'green');
+            this.colorCells();
             if (!this.isExecuting) {
                 this.clearColors();
             }
@@ -228,5 +234,21 @@ var TSOS;
             // Do the real work here. Be sure to set this.isExecuting appropriately.
         }
     }
+    Cpu.highlight = {
+        0xA9: 1,
+        0xAD: 2,
+        0x8D: 2,
+        0x6D: 2,
+        0xA2: 1,
+        0xAE: 2,
+        0xA0: 1,
+        0xAC: 2,
+        0xEA: 1,
+        0x00: 1,
+        0xEC: 2,
+        0xD0: 1,
+        0xEE: 3,
+        0xFF: 0
+    };
     TSOS.Cpu = Cpu;
 })(TSOS || (TSOS = {}));

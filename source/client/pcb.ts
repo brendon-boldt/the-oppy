@@ -158,6 +158,7 @@ module TSOS {
          */
         public terminateProcess(params): void {
             let pid = params.pid;
+            let newline = params.newline;
             let ct: Context = this.getProcessByPid(pid);
 
             console.log("Terminating: " + pid);            
@@ -186,7 +187,7 @@ module TSOS {
             }
             
             let waitList = _PCB.getProcessesByState(STATE_WAITING | STATE_EXECUTING);
-            if (waitList.length == 0) {
+            if (params.newline !== false && waitList.length == 0) {
                 _StdOut.advanceLine();
                 _OsShell.putPrompt();
             } else {

@@ -52,7 +52,7 @@ module TSOS {
         
         private roundRobin(): void {
             let procs = _PCB.getProcessesByState(STATE_WAITING | STATE_EXECUTING);
-            if (procs.length > 0) {
+            if (procs.length > 1) {
                 if (this.burstCounter >= this.quantum) {
                     this.burstCounter = 0;
                     let ct = this.getNextRRProcess(procs);
@@ -62,6 +62,12 @@ module TSOS {
                         {pid: ct.pid}));
 
                     //this.CPU.startExecution(ct);
+                }
+            } else if (procs.length == 1) {
+                if (procs[0].state == STATE_WAITING) {
+                    _KernelInterruptQueue.enqueue(
+                        new Interrupt(CT_SWITCH_IRQ,
+                        {pid: procs[0].pid}));
                 }
             } else {
                 // Set burstCounter to a big number so the next process

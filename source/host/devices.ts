@@ -153,6 +153,10 @@ module TSOS {
                 $('#memCell'+addr).css('font-weight', 'normal');
             }
         }
+
+        public static hostSetMemScroll(addr: number): void {
+            $('#memCell' + addr)[0].scrollIntoView( true );
+        }
         
         public static translateState(state: number): string {
             switch (state) {

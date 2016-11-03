@@ -38,6 +38,11 @@ module TSOS {
             this.commandList[this.commandList.length] = sc;
 
             sc = new ShellCommand(this.shellClearmem,
+                                  "killall",
+                                  " - Alias of clearmem.");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellClearmem,
                                   "clearmem",
                                   " - Clears all memory segments.");
             this.commandList[this.commandList.length] = sc;
@@ -251,14 +256,42 @@ module TSOS {
             return retVal;
         }
 
-
         public shellQuantum(args): void {
+            let q: number = parseInt(args[0]);
+            if (q > 0) {
+                _Scheduler.quantum = q;
+            } else {
+                _StdOut.putText("Invalid quantum value.");
+                _StdOut.advanceLine();
+            }
         }
 
         public shellKill(args): void {
+            let pid: number = parseInt(args[0]);
+            if (pid >= 0) {
+                let ct = _PCB.getProcessByPid(pid);
+                if (ct) {
+                    _KernelInterruptQueue.enqueue(
+                        new Interrupt(TERM_IRQ, {pid: pid}));
+                } else {
+                    _StdOut.putText("No process with PID " + pid + " found.");
+                    _StdOut.advanceLine();
+                }
+            } else {
+                _StdOut.putText("Invalid PID value.");
+                _StdOut.advanceLine();
+            }
         }
 
         public shellClearmem(): void {
+            let cts = _PCB.getProcessesByState(
+                STATE_READY | STATE_WAITING | STATE_EXECUTING);
+            for (let i = 0; i < cts.length; i++) {
+                // Clearing memory requires that we remove the processes too.
+                // Set newline to false so we do not get new prompt lines
+                _KernelInterruptQueue.enqueue(
+                    new Interrupt(TERM_IRQ, {pid: cts[i].pid, newline:false}));
+            }
         }
 
         public shellPs(): void {

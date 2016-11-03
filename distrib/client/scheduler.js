@@ -44,12 +44,17 @@ var TSOS;
         }
         roundRobin() {
             let procs = _PCB.getProcessesByState(STATE_WAITING | STATE_EXECUTING);
-            if (procs.length > 0) {
+            if (procs.length > 1) {
                 if (this.burstCounter >= this.quantum) {
                     this.burstCounter = 0;
                     let ct = this.getNextRRProcess(procs);
                     console.log("Switching: " + ct.pid);
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CT_SWITCH_IRQ, { pid: ct.pid }));
+                }
+            }
+            else if (procs.length == 1) {
+                if (procs[0].state == STATE_WAITING) {
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CT_SWITCH_IRQ, { pid: procs[0].pid }));
                 }
             }
             else {

@@ -135,6 +135,9 @@ var TSOS;
                 $('#memCell' + addr).css('font-weight', 'normal');
             }
         }
+        static hostSetMemScroll(addr) {
+            $('#memCell' + addr)[0].scrollIntoView(true);
+        }
         static translateState(state) {
             switch (state) {
                 case STATE_READY:
