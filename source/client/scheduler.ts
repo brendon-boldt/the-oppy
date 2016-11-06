@@ -75,5 +75,16 @@ module TSOS {
                 this.burstCounter = 0xffff;
             }
         }
+
+        public updateTimes() {
+            let procs = _PCB.getProcessesByState(STATE_WAITING | STATE_EXECUTING);
+            for (let i = 0; i < procs.length; i++) {
+                if (procs[i].state == STATE_EXECUTING) {
+                    procs[i].runTime++;
+                } else if (procs[i].state == STATE_WAITING) {
+                    procs[i].waitTime++;
+                }
+            }
+        }
     }
 }

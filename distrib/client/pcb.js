@@ -13,6 +13,8 @@ var TSOS;
             this.Zflag = Zflag;
             this.segment = segment;
             this.state = STATE_READY;
+            this.runTime = 0;
+            this.waitTime = 0;
         }
         getAbsPC() {
             return this.PC + this.segment * _MMU.segmentSize;
@@ -149,6 +151,15 @@ var TSOS;
                 // Clear the segment
                 _MMU.clearSegment(ct.segment);
                 ct.state = STATE_TERMINATED;
+                if (_DebugMode) {
+                    _StdOut.advanceLine();
+                    _StdOut.putText("PID " + ct.pid);
+                    _StdOut.advanceLine();
+                    _StdOut.putText("Wait time: " + ct.waitTime + " cycles");
+                    _StdOut.advanceLine();
+                    _StdOut.putText("Turnaround time: "
+                        + (ct.runTime + ct.waitTime) + " cycles");
+                }
                 let index;
                 for (let i = 0; i < this.processes.length; i++) {
                     if (this.processes[i].pid == pid)
@@ -157,10 +168,7 @@ var TSOS;
                 // Remove the context from the PCB
                 this.processes.splice(index, 1);
                 _CPU.stopExecution();
-                //_CPU.ct = undefined;
                 // Stop executing and update various displays
-                //_CPU.isExecuting = false;
-                _CPU.clearColors();
                 TSOS.Devices.hostUpdatePcbDisplay();
                 _Status = 'idle';
             }

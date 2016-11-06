@@ -33,7 +33,6 @@ var TSOS;
         constructor(ct = new TSOS.Context(), isExecuting = false) {
             this.ct = ct;
             this.isExecuting = isExecuting;
-            this.coloredCells = [];
         }
         init() {
             /*
@@ -190,6 +189,7 @@ var TSOS;
             _Status = 'processing';
             this.ct.state = STATE_EXECUTING;
             this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct.segment);
+            TSOS.Devices.hostUpdateMemDisplay();
             this.colorCells();
             TSOS.Devices.hostUpdateCpuDisplay();
         }
@@ -200,25 +200,16 @@ var TSOS;
         colorCells() {
             let num = Cpu.highlight[this.ct.IR];
             if (num >= 2)
-                TSOS.Devices.hostSetMemCellColor(this.ct.PC + 2, '#1e90ff');
+                TSOS.Devices.hostSetMemCellColor(this.ct.getAbsPC() + 2, '#1e90ff');
             if (num >= 1)
-                TSOS.Devices.hostSetMemCellColor(this.ct.PC + 1, '#1e90ff');
-            TSOS.Devices.hostSetMemCellColor(this.ct.PC, 'blue');
-            TSOS.Devices.hostSetMemScroll(this.ct.PC);
-        }
-        /** Remove the coloring from cells.
-         */
-        clearColors() {
-            for (let i = 0; i < this.coloredCells.length; i++) {
-                TSOS.Devices.hostSetMemCellColor(this.coloredCells[i]);
-            }
-            this.coloredCells = [];
+                TSOS.Devices.hostSetMemCellColor(this.ct.getAbsPC() + 1, '#1e90ff');
+            TSOS.Devices.hostSetMemCellColor(this.ct.getAbsPC(), 'blue');
+            TSOS.Devices.hostSetMemScroll(this.ct.getAbsPC());
         }
         cycle() {
             _Kernel.krnTrace('CPU cycle');
             _Scheduler.burstCounter++;
-            this.clearColors();
-            this.coloredCells.push(this.ct.getAbsPC());
+            _Scheduler.updateTimes();
             this.handleOpCode(_MMU.getLogicalByte(this.ct.PC, this.ct.segment));
             this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct.segment);
             //console.log("Executing @ " + this.ct.getAbsPC().toString(0x10));
@@ -227,9 +218,6 @@ var TSOS;
             TSOS.Devices.hostUpdatePcbDisplay();
             TSOS.Devices.hostUpdateMemDisplay();
             this.colorCells();
-            if (!this.isExecuting) {
-                this.clearColors();
-            }
             // TODO: Accumulate CPU usage and profiling statistics here.
             // Do the real work here. Be sure to set this.isExecuting appropriately.
         }

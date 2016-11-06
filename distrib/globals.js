@@ -38,6 +38,7 @@ const STATE_TERMINATED = 0x8;
 var _Scheduler;
 const MODE_FCFS = Symbol();
 const MODE_ROUND_ROBIN = Symbol();
+var _DebugMode = false;
 // Overall OS status
 var _Status = 'off';
 var _OSclock = 0; // Page 23.

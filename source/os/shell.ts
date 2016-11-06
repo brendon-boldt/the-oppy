@@ -32,6 +32,11 @@ module TSOS {
 
 
             // Load the command list.
+            sc = new ShellCommand(this.shellDebug,
+                                  "debug",
+                                  "<on | off> - Toggle debug mode.");
+            this.commandList[this.commandList.length] = sc;
+
             sc = new ShellCommand(this.shellSMode,
                                   "smode",
                                   "<rr | fcfs>  - Changes the scheduler mode.");
@@ -318,6 +323,17 @@ module TSOS {
             for (let i = 0; i < cts.length; i++) {
                 _StdOut.putText(cts[i].pid + " "
                         + Shell.stateToString(cts[i].state));
+                _StdOut.advanceLine();
+            }
+        }
+
+        public shellDebug(args): void {
+            if (args[0] == 'on') {
+                _DebugMode = true;
+            } else if (args[0] == 'off') {
+                _DebugMode = false;
+            } else {
+                _StdOut.putText("Use \"on\" or \"off\".")
                 _StdOut.advanceLine();
             }
         }

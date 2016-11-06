@@ -24,6 +24,8 @@ var TSOS;
         init() {
             var sc;
             // Load the command list.
+            sc = new TSOS.ShellCommand(this.shellDebug, "debug", "<on | off> - Toggle debug mode.");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellSMode, "smode", "<rr | fcfs>  - Changes the scheduler mode.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellClearmem, "killall", " - Alias of clearmem.");
@@ -228,6 +230,18 @@ var TSOS;
             for (let i = 0; i < cts.length; i++) {
                 _StdOut.putText(cts[i].pid + " "
                     + Shell.stateToString(cts[i].state));
+                _StdOut.advanceLine();
+            }
+        }
+        shellDebug(args) {
+            if (args[0] == 'on') {
+                _DebugMode = true;
+            }
+            else if (args[0] == 'off') {
+                _DebugMode = false;
+            }
+            else {
+                _StdOut.putText("Use \"on\" or \"off\".");
                 _StdOut.advanceLine();
             }
         }
