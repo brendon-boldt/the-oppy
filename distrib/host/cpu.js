@@ -16,32 +16,12 @@
 var TSOS;
 (function (TSOS) {
     class Cpu {
-        /*
-          constructor(public PC: number = 0,
-                      public Acc: number = 0,
-                      public Xreg: number = 0,
-                      public Yreg: number = 0,
-                      public Zflag: number = 0,
-                      public isExecuting: boolean = false) {
-  
-          }
-  
-          public segment: number;
-          public IR: number;
-          public currentContext: Context;
-         */
+        // The context of CPU is a reference to a PCB entry
         constructor(ct = new TSOS.Context(), isExecuting = false) {
             this.ct = ct;
             this.isExecuting = isExecuting;
         }
         init() {
-            /*
-              this.PC = 0;
-              this.Acc = 0;
-              this.Xreg = 0;
-              this.Yreg = 0;
-              this.Zflag = 0;
-              */
             this.ct = new TSOS.Context();
             this.isExecuting = false;
         }
@@ -212,14 +192,11 @@ var TSOS;
             _Scheduler.updateTimes();
             this.handleOpCode(_MMU.getLogicalByte(this.ct.PC, this.ct.segment));
             this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct.segment);
-            //console.log("Executing @ " + this.ct.getAbsPC().toString(0x10));
             TSOS.Devices.hostUpdateCpuDisplay();
             _PCB.updatePCB();
             TSOS.Devices.hostUpdatePcbDisplay();
             TSOS.Devices.hostUpdateMemDisplay();
             this.colorCells();
-            // TODO: Accumulate CPU usage and profiling statistics here.
-            // Do the real work here. Be sure to set this.isExecuting appropriately.
         }
     }
     Cpu.highlight = {

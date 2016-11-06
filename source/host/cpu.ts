@@ -19,32 +19,12 @@ module TSOS {
 
     export class Cpu {
 
-      /*
-        constructor(public PC: number = 0,
-                    public Acc: number = 0,
-                    public Xreg: number = 0,
-                    public Yreg: number = 0,
-                    public Zflag: number = 0,
-                    public isExecuting: boolean = false) {
-
-        }
-
-        public segment: number;
-        public IR: number;
-        public currentContext: Context;
-       */
+        // The context of CPU is a reference to a PCB entry
         constructor(public ct: Context = new Context(),
                     public isExecuting: boolean = false) {
         }
 
         public init(): void {
-          /*
-            this.PC = 0;
-            this.Acc = 0;
-            this.Xreg = 0;
-            this.Yreg = 0;
-            this.Zflag = 0;
-            */
             this.ct = new Context();
             this.isExecuting = false;
         }
@@ -59,7 +39,6 @@ module TSOS {
         /**
          * Below are the opcode methods.
          */
-
         private loadAccConstant() {
             this.ct.Acc = _MMU.getLogicalByte(this.ct.PC+1, this.ct.segment);
             this.ct.PC += 2;
@@ -270,16 +249,11 @@ module TSOS {
 
             this.handleOpCode(_MMU.getLogicalByte(this.ct.PC, this.ct.segment));
             this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct.segment);
-            //console.log("Executing @ " + this.ct.getAbsPC().toString(0x10));
             TSOS.Devices.hostUpdateCpuDisplay();
             _PCB.updatePCB();
             TSOS.Devices.hostUpdatePcbDisplay();
             TSOS.Devices.hostUpdateMemDisplay();
             this.colorCells();
-
-
-            // TODO: Accumulate CPU usage and profiling statistics here.
-            // Do the real work here. Be sure to set this.isExecuting appropriately.
         }
     }
 }

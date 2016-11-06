@@ -56,7 +56,7 @@ var TSOS;
                     " Addr: 0x" + addr.toString(16));
                 console.log(new Error().stack);
                 // Kill the process
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, null));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, { pid: _CPU.ct.pid }));
             }
         }
         /** Set the absolute byte address via the LBA and segment number
@@ -70,7 +70,7 @@ var TSOS;
                 _StdOut.putText("Illegal memory access.");
                 console.log(new Error().stack);
                 // Kill the process
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, null));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, { pid: _CPU.ct.pid }));
             }
         }
     }

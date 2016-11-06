@@ -3,7 +3,10 @@
 module TSOS {
 
     /**
-     * The Context class represents the context of a given thread
+     * The Context class represents the context of a given thread.
+     *
+     * The Context class is used both in PCB entries as well as in the CPU
+     * itself which makes for cleaner and easier context switching.
      */
     export class Context {
         constructor(public PC: number = 0,
@@ -21,6 +24,8 @@ module TSOS {
         public runTime: number = 0;
         public waitTime: number = 0;
 
+        /** Get the segment-adjusted program counter.
+         */
         public getAbsPC(): number {
             return this.PC + this.segment * _MMU.segmentSize;
         }
@@ -122,14 +127,12 @@ module TSOS {
             }
         }
 
-        /** 
-         * Set the segment and begin executing.
-         * TODO Will add actually passing the context to the CPU for switching
+        /** Change the state of the process to waiting.
+         *  The scheduler will handle everything from here.
          */
         public runProcess(pid): void {
             console.log("Running: " + pid);
             let ct = this.getProcessByPid(pid);
-            let segNum = ct.segment;
             ct.state = STATE_WAITING;
         }
 
@@ -139,10 +142,15 @@ module TSOS {
             }
         }
 
+        /** Return the state of the process to waiting.
+         */
         public pauseExecution(): void {
             _CPU.ct.state = STATE_WAITING;
         }
 
+        /** Switching contexts is not hard since both the PCB and the CPU make
+         *  use of the Context class.
+         */
         public contextSwitch(params): void {
             let pid = params.pid;
             let ct = this.getProcessByPid(params.pid);

@@ -63,7 +63,8 @@ module TSOS {
                                 " Addr: 0x" + addr.toString(16));
                 console.log(new Error().stack);
                 // Kill the process
-                _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, null));
+                _KernelInterruptQueue.enqueue(
+                        new Interrupt(TERM_IRQ, {pid:_CPU.ct.pid}));
             }
         }
 
@@ -77,7 +78,8 @@ module TSOS {
                 _StdOut.putText("Illegal memory access.");
                 console.log(new Error().stack);
                 // Kill the process
-                _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, null));
+                _KernelInterruptQueue.enqueue(
+                        new Interrupt(TERM_IRQ, {pid:_CPU.ct.pid}));
             }
         }
     }
