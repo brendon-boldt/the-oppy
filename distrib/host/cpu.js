@@ -151,7 +151,7 @@ var TSOS;
                         + '@'
                         + this.ct.getAbsPC().toString(16).toUpperCase());
                     // Terminate the program if an invalid opcode is found
-                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, this.ct.pid));
+                    _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, { pid: this.ct.pid }));
                     break;
             }
         }
@@ -208,7 +208,7 @@ var TSOS;
         0xAE: 2,
         0xA0: 1,
         0xAC: 2,
-        0xEA: 1,
+        0xEA: 0,
         0x00: 1,
         0xEC: 2,
         0xD0: 1,

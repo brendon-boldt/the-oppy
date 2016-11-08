@@ -83,7 +83,7 @@ module TSOS {
                 _NextStep = false;
                 _CPU.cycle();
             } else {
-                //this.krnTrace("Idle");
+                this.krnTrace("Idle");
             }
         }
 

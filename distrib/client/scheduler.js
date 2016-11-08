@@ -31,6 +31,7 @@ var TSOS;
             let procs = _PCB.getProcessesByState(STATE_WAITING);
             if (procs.length > 0) {
                 if (!this.CPU.isExecuting) {
+                    _Kernel.krnTrace("FCFS: switching to PID " + procs[0].pid);
                     this.CPU.startExecution(procs[0]);
                 }
             }
@@ -55,6 +56,7 @@ var TSOS;
                     this.burstCounter = 0;
                     let ct = this.getNextRRProcess(procs);
                     console.log("Switching: " + ct.pid);
+                    _Kernel.krnTrace("Round Robin: switching to PID " + ct.pid);
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CT_SWITCH_IRQ, { pid: ct.pid }));
                 }
                 else {
@@ -67,6 +69,7 @@ var TSOS;
                         this.burstCounter = 0;
                         let ct = this.getNextRRProcess(procs);
                         console.log("Switching: " + ct.pid);
+                        _Kernel.krnTrace("Round Robin: switching to PID " + ct.pid);
                         _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CT_SWITCH_IRQ, { pid: ct.pid }));
                     }
                 }
