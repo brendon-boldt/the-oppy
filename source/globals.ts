@@ -46,7 +46,7 @@ var _Scheduler: TSOS.Scheduler;
 const MODE_FCFS = Symbol();
 const MODE_ROUND_ROBIN = Symbol();
 
-var _DebugMode = false;
+var _DebugMode = true;
 
 // Overall OS status
 var _Status = 'off';
