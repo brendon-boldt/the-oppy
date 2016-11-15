@@ -42,35 +42,35 @@ var TSOS;
         }
         /** Get the absolute byte address via the LBA and segment number
          */
-        getLogicalByte(addr, segment) {
+        getLogicalByte(addr, ct) {
             // Check memory access bounds
-            if (addr < this.segmentSize && segment < this.segmentCount) {
-                let absAddr = segment * this.segmentSize + addr;
+            if (addr < this.segmentSize && ct.segment < this.segmentCount) {
+                let absAddr = ct.segment * this.segmentSize + addr;
                 return _Memory.getByte(absAddr);
             }
             else {
                 // Segfault!
                 _StdOut.putText("Illegal memory access.");
                 _StdOut.advanceLine();
-                _StdOut.putText("Seg: " + segment +
+                _StdOut.putText("Seg: " + ct.segment +
                     " Addr: 0x" + addr.toString(16));
                 console.log(new Error().stack);
                 // Kill the process
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, { pid: _CPU.ct.pid }));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, { pid: ct.pid }));
             }
         }
         /** Set the absolute byte address via the LBA and segment number
          */
-        setLogicalByte(addr, segment, value) {
-            if (addr < this.segmentSize && segment < this.segmentCount) {
-                let absAddr = segment * this.segmentSize + addr;
+        setLogicalByte(addr, ct, value) {
+            if (addr < this.segmentSize && ct.segment < this.segmentCount) {
+                let absAddr = ct.segment * this.segmentSize + addr;
                 _Memory.setByte(absAddr, value);
             }
             else {
                 _StdOut.putText("Illegal memory access.");
                 console.log(new Error().stack);
                 // Kill the process
-                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, { pid: _CPU.ct.pid }));
+                _KernelInterruptQueue.enqueue(new TSOS.Interrupt(TERM_IRQ, { pid: ct.pid }));
             }
         }
     }

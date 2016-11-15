@@ -65,7 +65,7 @@ module TSOS {
             this.krnTrace("end shutdown OS");
             if (_Status == 'idle')
               _Status = 'off';
-            _CPU.stopExecution();
+            _MCPU.stopExecution();
             _Scheduler.isActive = false;
         }
 
@@ -78,10 +78,10 @@ module TSOS {
                 // number/id to enforce interrupt priority.
                 var interrupt = _KernelInterruptQueue.dequeue();
                 this.krnInterruptHandler(interrupt.irq, interrupt.params);
-            } else if (_CPU.isExecuting
+            } else if (_MCPU.isExecuting
                       && (!_SSMode || _NextStep)) {
                 _NextStep = false;
-                _CPU.cycle();
+                _MCPU.cycle();
             } else {
                 this.krnTrace("Idle");
             }
@@ -103,30 +103,31 @@ module TSOS {
             // Put more here.
         }
 
-        private krnSysCallPrintByte(): void {
-            _StdOut.putText(_CPU.ct.Yreg.toString());
+        private krnSysCallPrintByte(cpuNum: number): void {
+            _StdOut.putText(_MCPU.cpus[cpuNum].ct.Yreg.toString());
         }
 
-        private krnSysCallPrintBytes(): void {
-            let addr = _CPU.ct.Yreg;
+        private krnSysCallPrintBytes(cpuNum: number): void {
+            let addr = _MCPU.cpus[cpuNum].ct.Yreg;
             let str = "";
-            let ct = _PCB.getCurrentProcess();
+            let ct = _MCPU.cpus[cpuNum].ct;
             let value;
             do {
-                value = _MMU.getLogicalByte(addr, ct.segment);
+                value = _MMU.getLogicalByte(addr, ct);
                 addr += 1;
                 str += String.fromCharCode(value);
             } while (value != 0x0);
             _StdOut.putText(str);
         }
 
-        private krnSysCall(): void {
-            switch (_CPU.ct.Xreg) {
+        private krnSysCall(params): void {
+            let cpuNum = params.cpuNum;
+            switch (_MCPU.cpus[cpuNum].ct.Xreg) {
                 case 1:
-                    this.krnSysCallPrintByte();
+                    this.krnSysCallPrintByte(cpuNum);
                     break;
                 case 2:
-                    this.krnSysCallPrintBytes();
+                    this.krnSysCallPrintBytes(cpuNum);
                     break;
                 default:
                     // TODO raise error
@@ -158,7 +159,7 @@ module TSOS {
                     _PCB.terminateProcess(params);
                     break;
                 case SYSCALL_IRQ:
-                    this.krnSysCall();
+                    this.krnSysCall(params);
                     break;
                 case CT_SWITCH_IRQ:
                     _PCB.contextSwitch(params);

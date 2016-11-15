@@ -178,13 +178,14 @@ var TSOS;
             }
             $('#tablePCB').html(html);
         }
+        // TODO Build table of all CPUs
         static hostUpdateCpuDisplay() {
-            $('#cpuPC').html(Devices.formatValue(_CPU.ct.PC, 3));
-            $('#cpuIR').html(Devices.formatValue(_CPU.ct.IR, 2));
-            $('#cpuAcc').html(Devices.formatValue(_CPU.ct.Acc, 2));
-            $('#cpuX').html(Devices.formatValue(_CPU.ct.Xreg, 2));
-            $('#cpuY').html(Devices.formatValue(_CPU.ct.Yreg, 2));
-            $('#cpuZF').html(_CPU.ct.Zflag + '');
+            $('#cpuPC').html(Devices.formatValue(_MCPU.cpus[0].ct.PC, 3));
+            $('#cpuIR').html(Devices.formatValue(_MCPU.cpus[0].ct.IR, 2));
+            $('#cpuAcc').html(Devices.formatValue(_MCPU.cpus[0].ct.Acc, 2));
+            $('#cpuX').html(Devices.formatValue(_MCPU.cpus[0].ct.Xreg, 2));
+            $('#cpuY').html(Devices.formatValue(_MCPU.cpus[0].ct.Yreg, 2));
+            $('#cpuZF').html(_MCPU.cpus[0].ct.Zflag + '');
         }
         static hostUpdateScheduleDisplay() {
             let str;

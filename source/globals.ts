@@ -14,7 +14,7 @@
 const APP_NAME: string    = "The Oppy";  
 const APP_VERSION: string = "0.04"; 
 
-const CPU_CLOCK_INTERVAL: number = 100;   // This is in ms (milliseconds) so 1000 = 1 second.
+const CPU_CLOCK_INTERVAL: number = 20;//100;   // This is in ms (milliseconds) so 1000 = 1 second.
 
 const TIMER_IRQ: number = 0;  // Pages 23 (timer), 9 (interrupts), and 561 (interrupt priority).
                               // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
@@ -28,7 +28,7 @@ const CT_SWITCH_IRQ: number = 4;
 // Global Variables
 // TODO: Make a global object and use that instead of the "_" naming convention in the global namespace.
 //
-var _CPU: TSOS.Cpu;
+var _MCPU: TSOS.MultiCpu;
 // Single-step mode
 var _SSMode: boolean = false;
 var _NextStep: boolean = false;
@@ -42,7 +42,8 @@ const STATE_READY        = 0x2;
 const STATE_WAITING      = 0x4;
 const STATE_TERMINATED   = 0x8;
 
-var _Scheduler: TSOS.Scheduler;
+//var _Scheduler: TSOS.MultiScheduler;
+var _Scheduler: TSOS.MultiScheduler;
 const MODE_FCFS = Symbol();
 const MODE_ROUND_ROBIN = Symbol();
 

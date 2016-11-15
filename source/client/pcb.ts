@@ -20,6 +20,7 @@ module TSOS {
         public pid: number;
         public IR: number;
         public state: number = STATE_READY;
+        public cpuNum: number;
 
         public runTime: number = 0;
         public waitTime: number = 0;
@@ -45,17 +46,6 @@ module TSOS {
                     return this.processes[i];
             }
             return null;
-        }
-
-        /** Get the process currently executing on the CPU.
-         */
-        public getCurrentProcess(): Context {
-            return _CPU.ct;
-        }
-
-        /** Update the PCB entry corresponding to the current process.
-         */
-        public updatePCB() {
         }
 
         /** Get list of processes currently ready to be executed.
@@ -144,22 +134,24 @@ module TSOS {
 
         /** Return the state of the process to waiting.
          */
-        public pauseExecution(): void {
-            _CPU.ct.state = STATE_WAITING;
+        public pauseExecution(cpuNum: number): void {
+            _MCPU.cpus[cpuNum].ct.state = STATE_WAITING;
         }
 
         /** Switching contexts is not hard since both the PCB and the CPU make
          *  use of the Context class.
          */
         public contextSwitch(params): void {
+            if (params.cpuNum == undefined)
+                alert('define cpuNum');
             let pid = params.pid;
             let ct = this.getProcessByPid(params.pid);
             if (!ct) {
                 //_Kernel.krnTrapError("Attempted to context switch to non-existent process.");
                 _Kernel.krnTrace("Could not context switch to PID " + pid);
             } else {
-                this.pauseExecution();
-                _CPU.startExecution(ct);
+                this.pauseExecution(params.cpuNum);
+                _MCPU.cpus[params.cpuNum].startExecution(ct);
             }
         }
 
@@ -168,6 +160,8 @@ module TSOS {
          * This should ONLY be called using the TErM_IRQ interrupt -- ONLY
          */
         public terminateProcess(params): void {
+            if (params.cpuNum == undefined)
+                alert('define cpuNum');
             let pid = params.pid;
             let newline = params.newline;
             let ct: Context = this.getProcessByPid(pid);
@@ -195,7 +189,7 @@ module TSOS {
                 }
                 // Remove the context from the PCB
                 this.processes.splice(index, 1)
-                _CPU.stopExecution();
+                _MCPU.cpus[params.cpuNum].stopExecution();
                 // Stop executing and update various displays
                 Devices.hostUpdatePcbDisplay();
                 _Status = 'idle';

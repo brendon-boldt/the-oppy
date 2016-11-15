@@ -110,9 +110,18 @@ module TSOS {
             document.getElementById("display").focus();
 
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
-            _CPU = new Cpu();
-            _CPU.init();
-            _Scheduler = new Scheduler(_CPU);
+            let cpus = [];
+            cpus.push(new Cpu());
+            cpus.push(new Cpu());
+            //let schedulers: Scheduler[] = [];
+            for (let i = 0; i < cpus.length; i++) {
+                cpus[i].init();
+                //schedulers.push(new Scheduler(cpus[i]));
+            }
+            //_Scheduler = new Scheduler(_CPU);
+            _MCPU = new MultiCpu(cpus);
+            _Scheduler = new MultiScheduler(_MCPU);
+            //_Scheduler = new MultiScheduler(schedulers);
             _Memory = new Memory();
             TSOS.Devices.hostUpdateMemDisplay();
             TSOS.Devices.hostUpdateScheduleDisplay();

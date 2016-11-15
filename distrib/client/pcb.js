@@ -38,15 +38,6 @@ var TSOS;
             }
             return null;
         }
-        /** Get the process currently executing on the CPU.
-         */
-        getCurrentProcess() {
-            return _CPU.ct;
-        }
-        /** Update the PCB entry corresponding to the current process.
-         */
-        updatePCB() {
-        }
         /** Get list of processes currently ready to be executed.
          */
         getProcessesByState(state) {
@@ -128,13 +119,15 @@ var TSOS;
         }
         /** Return the state of the process to waiting.
          */
-        pauseExecution() {
-            _CPU.ct.state = STATE_WAITING;
+        pauseExecution(cpuNum) {
+            _MCPU.cpus[cpuNum].ct.state = STATE_WAITING;
         }
         /** Switching contexts is not hard since both the PCB and the CPU make
          *  use of the Context class.
          */
         contextSwitch(params) {
+            if (params.cpuNum == undefined)
+                alert('define cpuNum');
             let pid = params.pid;
             let ct = this.getProcessByPid(params.pid);
             if (!ct) {
@@ -142,8 +135,8 @@ var TSOS;
                 _Kernel.krnTrace("Could not context switch to PID " + pid);
             }
             else {
-                this.pauseExecution();
-                _CPU.startExecution(ct);
+                this.pauseExecution(params.cpuNum);
+                _MCPU.cpus[params.cpuNum].startExecution(ct);
             }
         }
         /**
@@ -151,6 +144,8 @@ var TSOS;
          * This should ONLY be called using the TErM_IRQ interrupt -- ONLY
          */
         terminateProcess(params) {
+            if (params.cpuNum == undefined)
+                alert('define cpuNum');
             let pid = params.pid;
             let newline = params.newline;
             let ct = this.getProcessByPid(pid);
@@ -175,7 +170,7 @@ var TSOS;
                 }
                 // Remove the context from the PCB
                 this.processes.splice(index, 1);
-                _CPU.stopExecution();
+                _MCPU.cpus[params.cpuNum].stopExecution();
                 // Stop executing and update various displays
                 TSOS.Devices.hostUpdatePcbDisplay();
                 _Status = 'idle';

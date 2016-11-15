@@ -32,21 +32,21 @@ module TSOS {
         /** Translate the little endian address.
          */
         private translateAddress(addr: number): number {
-            return _MMU.getLogicalByte(addr+1, this.ct.segment)*0x100
-                + _MMU.getLogicalByte(addr, this.ct.segment);
+            return _MMU.getLogicalByte(addr+1, this.ct)*0x100
+                + _MMU.getLogicalByte(addr, this.ct);
         }
 
         /**
          * Below are the opcode methods.
          */
         private loadAccConstant() {
-            this.ct.Acc = _MMU.getLogicalByte(this.ct.PC+1, this.ct.segment);
+            this.ct.Acc = _MMU.getLogicalByte(this.ct.PC+1, this.ct);
             this.ct.PC += 2;
         }
 
         private loadAccMemory() {
             this.ct.Acc = _MMU.getLogicalByte(
-                this.translateAddress(this.ct.PC+1), this.ct.segment);
+                this.translateAddress(this.ct.PC+1), this.ct);
             this.ct.PC += 3;
         }
 
@@ -57,13 +57,15 @@ module TSOS {
         private halt() {
             _Status = 'idle';
             //console.log("Halting: " + this.ct.pid);
-            _KernelInterruptQueue.enqueue(new Interrupt(TERM_IRQ, {pid: this.ct.pid}));
+            _KernelInterruptQueue.enqueue(
+                  new Interrupt(TERM_IRQ,
+                  {pid: this.ct.pid, cpuNum: this.ct.cpuNum}));
         }
 
         private storeAccMemory() {
             _MMU.setLogicalByte(
                 this.translateAddress(this.ct.PC+1),
-                this.ct.segment,
+                this.ct,
                 this.ct.Acc);
             this.ct.PC += 3;
         }
@@ -72,31 +74,31 @@ module TSOS {
             // Modulo max byte value in case of overflow
             // Not sure if this is correct behavior, but it is easiest.
             this.ct.Acc = (this.ct.Acc + _MMU.getLogicalByte(
-                this.translateAddress(this.ct.PC+1), this.ct.segment)) % 0x100;
+                this.translateAddress(this.ct.PC+1), this.ct)) % 0x100;
             this.ct.PC += 3;
         }
 
         private loadXConstant() {
-            this.ct.Xreg = _MMU.getLogicalByte(this.ct.PC+1, this.ct.segment);
+            this.ct.Xreg = _MMU.getLogicalByte(this.ct.PC+1, this.ct);
             this.ct.PC += 2;
 
         }
 
         private loadXMem() {
             this.ct.Xreg = _MMU.getLogicalByte(
-                this.translateAddress(this.ct.PC+1), this.ct.segment);
+                this.translateAddress(this.ct.PC+1), this.ct);
             this.ct.PC += 3;
 
         }
 
         private loadYConstant() {
-            this.ct.Yreg = _MMU.getLogicalByte(this.ct.PC+1, this.ct.segment);
+            this.ct.Yreg = _MMU.getLogicalByte(this.ct.PC+1, this.ct);
             this.ct.PC += 2;
         }
 
         private loadYMem() {
             this.ct.Yreg = _MMU.getLogicalByte(
-                this.translateAddress(this.ct.PC+1), this.ct.segment);
+                this.translateAddress(this.ct.PC+1), this.ct);
             this.ct.PC += 3;
 
         }
@@ -104,7 +106,7 @@ module TSOS {
         private compareX() {
             let res = (this.ct.Xreg
                 == _MMU.getLogicalByte(
-                this.translateAddress(this.ct.PC+1), this.ct.segment));
+                this.translateAddress(this.ct.PC+1), this.ct));
             this.ct.Zflag = (res) ? 1 : 0;
             this.ct.PC += 3;
         }
@@ -114,7 +116,7 @@ module TSOS {
             if (this.ct.Zflag == 0) {
                 this.ct.PC = (this.ct.PC + 2 + _MMU.getLogicalByte(
                     this.ct.PC+1,
-                    this.ct.segment)) % _MMU.segmentSize;
+                    this.ct)) % _MMU.segmentSize;
             } else {
                 this.ct.PC += 2;
             }
@@ -125,8 +127,8 @@ module TSOS {
             // Modulo byte in case of overflow
             _MMU.setLogicalByte(
                 addr,
-                this.ct.segment,
-                (_MMU.getLogicalByte(addr, this.ct.segment)+1) % 0x100);
+                this.ct,
+                (_MMU.getLogicalByte(addr, this.ct)+1) % 0x100);
             this.ct.PC += 3;
         }
 
@@ -186,7 +188,8 @@ module TSOS {
                           + this.ct.getAbsPC().toString(16).toUpperCase());
                     // Terminate the program if an invalid opcode is found
                     _KernelInterruptQueue.enqueue(
-                            new Interrupt(TERM_IRQ, {pid: this.ct.pid}));
+                           new Interrupt(TERM_IRQ,
+                           {pid: this.ct.pid, cpuNum: this.ct.cpuNum}));
                     break;
             }
         }
@@ -204,7 +207,7 @@ module TSOS {
             this.isExecuting = true;
             _Status = 'processing';
             this.ct.state = STATE_EXECUTING;
-            this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct.segment);
+            this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct);
             TSOS.Devices.hostUpdateMemDisplay();
             this.colorCells();
             TSOS.Devices.hostUpdateCpuDisplay();
@@ -245,13 +248,11 @@ module TSOS {
 
         public cycle(): void {
             _Kernel.krnTrace('CPU cycle');
-            _Scheduler.burstCounter++;
-            _Scheduler.updateTimes();
+            _Scheduler.cpuCycle();
 
-            this.handleOpCode(_MMU.getLogicalByte(this.ct.PC, this.ct.segment));
-            this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct.segment);
+            this.handleOpCode(_MMU.getLogicalByte(this.ct.PC, this.ct));
+            this.ct.IR = _MMU.getLogicalByte(this.ct.PC, this.ct);
             TSOS.Devices.hostUpdateCpuDisplay();
-            _PCB.updatePCB();
             TSOS.Devices.hostUpdatePcbDisplay();
             TSOS.Devices.hostUpdateMemDisplay();
             this.colorCells();

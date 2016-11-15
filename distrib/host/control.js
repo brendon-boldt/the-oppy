@@ -87,9 +87,17 @@ var TSOS;
             // .. set focus on the OS console display ...
             document.getElementById("display").focus();
             // ... Create and initialize the CPU (because it's part of the hardware)  ...
-            _CPU = new TSOS.Cpu();
-            _CPU.init();
-            _Scheduler = new TSOS.Scheduler(_CPU);
+            let cpus = [];
+            cpus.push(new TSOS.Cpu());
+            cpus.push(new TSOS.Cpu());
+            //let schedulers: Scheduler[] = [];
+            for (let i = 0; i < cpus.length; i++) {
+                cpus[i].init();
+            }
+            //_Scheduler = new Scheduler(_CPU);
+            _MCPU = new TSOS.MultiCpu(cpus);
+            _Scheduler = new TSOS.MultiScheduler(_MCPU);
+            //_Scheduler = new MultiScheduler(schedulers);
             _Memory = new TSOS.Memory();
             TSOS.Devices.hostUpdateMemDisplay();
             TSOS.Devices.hostUpdateScheduleDisplay();
