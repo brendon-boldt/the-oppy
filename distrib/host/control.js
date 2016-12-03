@@ -95,6 +95,8 @@ var TSOS;
             TSOS.Devices.hostUpdateScheduleDisplay();
             _PCB = new TSOS.Pcb();
             _MMU = new TSOS.Mmu();
+            _Disk = new TSOS.Disk();
+            TSOS.Devices.hostUpdateDiskDisplay();
             // ... then set the host clock pulse ...
             _hardwareClockID = setInterval(TSOS.Devices.hostClockPulse, CPU_CLOCK_INTERVAL);
             // .. and call the OS Kernel Bootstrap routine.

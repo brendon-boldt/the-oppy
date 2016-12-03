@@ -78,6 +78,11 @@ body {
   overflow: auto;
 }
 
+#divDisk {
+  height: 100px;
+  overflow: auto;
+}
+
 #divPCB {
   height: 100px;
   overflow: auto;
@@ -86,8 +91,16 @@ body {
 #tablePCB {
 }
 
-#tableMemory, #tablePCB, #tableCPU {
+#tableMemory, #tablePCB, #tableCPU, #tableDisk {
   width: 100%;
+}
+
+#tableDisk {
+  font-size: 8pt;
+}
+
+#tableDisk td {
+  padding: 0 0 0 0;
 }
 
 td {
@@ -106,6 +119,10 @@ th {
   padding: 4px;
   font-weight: bold;  
   color: grey;
+}
+
+#taHostLog {
+  font-size: 8pt;
 }
 
 .bg-off {

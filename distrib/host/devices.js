@@ -200,6 +200,33 @@ var TSOS;
             }
             $('#divMode').html(str);
         }
+        static formatDiskValue(addr) {
+            let trackSize = TSOS.Disk.sectorCount * TSOS.Disk.blockCount * TSOS.Disk.blockSize;
+            let sectorSize = TSOS.Disk.blockCount * TSOS.Disk.blockSize;
+            return Math.floor(addr / trackSize) + ":"
+                + Math.floor((addr % trackSize) / sectorSize) + ":"
+                + Math.floor((addr % sectorSize) / TSOS.Disk.blockSize);
+        }
+        static hostUpdateDiskDisplay() {
+            let html = '';
+            let bytes = _Disk.getImage();
+            for (let i = 0; i < bytes.length; i++) {
+                if (i % Devices.diskRowSize == 0) {
+                    html += "<tr id='diskRow"
+                        + Math.floor(i / Devices.diskRowSize) + "'><td>"
+                        + Devices.formatDiskValue(i)
+                        + "&nbsp</td>";
+                }
+                html += "<td id='memCell" + i + "'>"
+                    + Devices.formatValue(bytes.charCodeAt(i), 2)
+                    + "</td>";
+                Devices.hostSetMemCellColor(i);
+                if (i % Devices.diskRowSize == Devices.diskRowSize - 1) {
+                    html += "</tr>";
+                }
+            }
+            $('#tableDisk').html(html);
+        }
         //
         // Keyboard Interrupt, a HARDWARE Interrupt Request. (See pages 560-561 in our text book.)
         //
@@ -228,5 +255,6 @@ var TSOS;
     Devices.cursorInterval = 5;
     Devices.colorCheckInterval = 2;
     Devices.rowSize = 0x8;
+    Devices.diskRowSize = 0x40;
     TSOS.Devices = Devices;
 })(TSOS || (TSOS = {}));

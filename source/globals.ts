@@ -35,6 +35,7 @@ var _NextStep: boolean = false;
 var _Memory: TSOS.Memory;
 var _PCB: TSOS.Pcb;
 var _MMU: TSOS.Mmu;
+var _Disk: TSOS.Disk;
 
 // Process states
 const STATE_EXECUTING    = 0x1;
@@ -85,7 +86,8 @@ var _OsShell: TSOS.Shell;
 var _SarcasticMode: boolean = false;
 
 // Global Device Driver Objects - page 12
-var _krnKeyboardDriver; //  = null;
+var _krnKeyboardDriver: TSOS.DeviceDriverKeyboard;
+var _krnDiskDriver: TSOS.DeviceDriverDisk;
 
 var _hardwareClockID: number = null;
 

@@ -118,6 +118,8 @@ module TSOS {
             TSOS.Devices.hostUpdateScheduleDisplay();
             _PCB = new Pcb();
             _MMU = new Mmu();
+            _Disk = new Disk();
+            TSOS.Devices.hostUpdateDiskDisplay();
 
 
 

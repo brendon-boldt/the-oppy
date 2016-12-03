@@ -24,6 +24,14 @@ var TSOS;
         init() {
             var sc;
             // Load the command list.
+            sc = new TSOS.ShellCommand(this.shellCreate, "create", "<filename> - Creates a file.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellDelete, "delete", "<filename> - Deletes a file.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellWrite, "write", "<filename> \"data\" - Writes the data to a file.");
+            this.commandList[this.commandList.length] = sc;
+            sc = new TSOS.ShellCommand(this.shellRead, "read", "<filename> - Reads data from a file.");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellDebug, "debug", "<on | off> - Toggle debug mode.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellSMode, "smode", "<rr | fcfs>  - Changes the scheduler mode.");
@@ -224,6 +232,23 @@ var TSOS;
                     break;
             }
             return str;
+        }
+        shellCreate(args) {
+            // TODO Check name validity
+            let ret = _krnDiskDriver.createFile(args[0]);
+            if (ret == 0) {
+                _StdOut.putText("File was created succesfully.");
+            }
+            else {
+                _StdOut.putText("File creation failed.");
+            }
+        }
+        shellDelete(args) {
+        }
+        shellWrite(args) {
+        }
+        shellRead(args) {
+            _StdOut.putText();
         }
         shellPs() {
             let cts = _PCB.getProcessesByState(0xff);

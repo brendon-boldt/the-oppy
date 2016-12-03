@@ -224,6 +224,37 @@ module TSOS {
             $('#divMode').html(str);
         }
 
+        public static diskRowSize: number = 0x40;
+
+        public static formatDiskValue(addr: number): string {
+            let trackSize = Disk.sectorCount*Disk.blockCount*Disk.blockSize;
+            let sectorSize = Disk.blockCount*Disk.blockSize;
+            return Math.floor(addr/trackSize) + ":"
+                + Math.floor((addr % trackSize)/sectorSize) + ":"
+                + Math.floor((addr % sectorSize)/Disk.blockSize);
+        }
+
+        public static hostUpdateDiskDisplay() {
+            let html:string = '';
+            let bytes: string = _Disk.getImage();
+            for (let i = 0; i < bytes.length; i++) {
+                if (i % Devices.diskRowSize == 0) {
+                    html += "<tr id='diskRow"
+                        + Math.floor(i/Devices.diskRowSize)+"'><td>"
+                        + Devices.formatDiskValue(i)
+                        + "&nbsp</td>";    
+                }
+                html += "<td id='memCell"+i+"'>"
+                    + Devices.formatValue(bytes.charCodeAt(i), 2)
+                    + "</td>"; 
+                Devices.hostSetMemCellColor(i);
+                if (i % Devices.diskRowSize == Devices.diskRowSize-1) {
+                    html += "</tr>";
+                }
+            }
+            $('#tableDisk').html(html);
+        }
+
         //
         // Keyboard Interrupt, a HARDWARE Interrupt Request. (See pages 560-561 in our text book.)
         //

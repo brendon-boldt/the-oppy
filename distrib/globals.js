@@ -30,6 +30,7 @@ var _NextStep = false;
 var _Memory;
 var _PCB;
 var _MMU;
+var _Disk;
 // Process states
 const STATE_EXECUTING = 0x1;
 const STATE_READY = 0x2;
@@ -65,7 +66,8 @@ var _OsShell;
 // At least this OS is not trying to kill you. (Yet.)
 var _SarcasticMode = false;
 // Global Device Driver Objects - page 12
-var _krnKeyboardDriver; //  = null;
+var _krnKeyboardDriver;
+var _krnDiskDriver;
 var _hardwareClockID = null;
 // For testing (and enrichment)...
 var Glados = null; // This is the function Glados() in glados.js on Labouseur.com.

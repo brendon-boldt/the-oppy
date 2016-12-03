@@ -32,6 +32,26 @@ module TSOS {
 
 
             // Load the command list.
+            sc = new ShellCommand(this.shellCreate,
+                                  "create",
+                                  "<filename> - Creates a file.");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellDelete,
+                                  "delete",
+                                  "<filename> - Deletes a file.");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellWrite,
+                                  "write",
+                                  "<filename> \"data\" - Writes the data to a file.");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellRead,
+                                  "read",
+                                  "<filename> - Reads data from a file.");
+            this.commandList[this.commandList.length] = sc;
+
             sc = new ShellCommand(this.shellDebug,
                                   "debug",
                                   "<on | off> - Toggle debug mode.");
@@ -316,6 +336,26 @@ module TSOS {
                     break;
             }
             return str;
+        }
+
+        public shellCreate(args): void {
+            // TODO Check name validity
+            let ret = _krnDiskDriver.createFile(args[0]);
+            if (ret == 0) {
+                _StdOut.putText("File was created succesfully.");
+            } else {
+                _StdOut.putText("File creation failed.");
+            }
+        }
+
+        public shellDelete(args): void {
+        }
+
+        public shellWrite(args): void {
+        }
+
+        public shellRead(args): void {
+            _StdOut.putText();
         }
 
         public shellPs(): void {
