@@ -244,6 +244,14 @@ var TSOS;
             }
         }
         shellDelete(args) {
+            // TODO Check name validity
+            let ret = _krnDiskDriver.deleteFile(args[0]);
+            if (ret == 0) {
+                _StdOut.putText("File was deleted succesfully.");
+            }
+            else {
+                _StdOut.putText("File deletion failed.");
+            }
         }
         shellWrite(args) {
         }

@@ -15,10 +15,30 @@ module TSOS {
             this.status = "loaded";
         }
 
-
         private static emptyFlag = String.fromCharCode(0);
         private static nextFlag = String.fromCharCode(1);
         private static finalFlag = String.fromCharCode(2);
+
+        private static trimFilename(str: string): string {
+            let lastIndex: number;
+            for (let i = 0; i < str.length; ++i) {
+                if (str[i] == String.fromCharCode(0)) {
+                    lastIndex = i;
+                    break;
+                }
+            }
+            return str.slice(0, lastIndex);
+        }
+
+        public static stringToTSB(str: string): number[] {
+            if (str.length < 3) {
+                return undefined;
+            } else {
+                return [str[0].charCodeAt(0),
+                       str[1].charCodeAt(0), 
+                       str[2].charCodeAt(0)];
+            }
+        }
 
         private filenames: string[] = [];
 
@@ -68,6 +88,7 @@ module TSOS {
             return 0;
         }
 
+        /*
         private nextOpenDirEntry(): number[] {
             for (let s = 0; s < Disk.sectorCount; ++s) {
                 for (let b = 1; b < Disk.sectorCount; ++b) {
@@ -80,18 +101,37 @@ module TSOS {
             }
             return undefined;
         }
+        */
 
         private deleteDirectoryEntry(filename: string): number {
+            let DDD = DeviceDriverDisk;
             let dirTSB: number[];
+            let blockTSB: number[];
             for (let s = 0; s < Disk.sectorCount; ++s) {
                 for (let b = 1; b < Disk.sectorCount; ++b) {
                     let bytes = _Disk.readDisk([0,s,b]);
-                    if (bytes[0] == String.fromCharCode(0) &&
-                            bytes[1] == String.fromCharCode(0) &&
-                            bytes[2] == String.fromCharCode(0))
-                        dirTSB = bytes.slice(0,3);
+                    console.log("cmp: " +
+                                DDD.trimFilename(bytes.slice(3)).length +
+                                " == " +
+                                filename);
+                    if (DDD.trimFilename(bytes.slice(3)) == filename) {
+                        blockTSB = DDD.stringToTSB(bytes.slice(0,3));
+                        dirTSB = [0,s,b];
+                        // Break out of the loop
+                        s = 0xff;
+                        b = 0xff;
+                    }
                 }
             }
+            if (!dirTSB)
+                return 1
+            console.log(dirTSB);
+            let bytes = _Disk.readDisk(dirTSB);
+            //let blockTSB = DDD.stringToTSB(bytes.slice(0,3));
+            _Disk.writeDisk(dirTSB, "");
+            _Disk.writeDisk(blockTSB, "");
+
+            // TODO Add multi-block support
             return 0;
         }
 
@@ -112,10 +152,10 @@ module TSOS {
             let index = this.filenames.indexOf(filename)
             if (index != -1) {
                 ret = this.deleteDirectoryEntry(filename);
-                this.filenames.slice(0, index) +
-                        this.filenames.slice(index + 1, this.filename.length) ;
+                this.filenames.slice(0, index).concat( 
+                        this.filenames.slice(index + 1, filename.length));
             } 
-            return 1;
+            return ret;
         }
 
         public writeFile(filename: string): number {

@@ -349,6 +349,13 @@ module TSOS {
         }
 
         public shellDelete(args): void {
+            // TODO Check name validity
+            let ret = _krnDiskDriver.deleteFile(args[0]);
+            if (ret == 0) {
+                _StdOut.putText("File was deleted succesfully.");
+            } else {
+                _StdOut.putText("File deletion failed.");
+            }
         }
 
         public shellWrite(args): void {
