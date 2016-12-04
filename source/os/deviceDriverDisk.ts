@@ -81,7 +81,7 @@ module TSOS {
             let ret = _Disk.writeDisk(dirTSB, data);
             if (ret != 0)
                 return 1;
-            console.log("Writing to: " + blockTSB);
+            //console.log("Writing to: " + blockTSB);
             ret = _Disk.writeDisk(blockTSB, DeviceDriverDisk.finalFlag);
             if (ret != 0)
                 return 1;
@@ -110,10 +110,6 @@ module TSOS {
             for (let s = 0; s < Disk.sectorCount; ++s) {
                 for (let b = 1; b < Disk.sectorCount; ++b) {
                     let bytes = _Disk.readDisk([0,s,b]);
-                    console.log("cmp: " +
-                                DDD.trimFilename(bytes.slice(3)).length +
-                                " == " +
-                                filename);
                     if (DDD.trimFilename(bytes.slice(3)) == filename) {
                         blockTSB = DDD.stringToTSB(bytes.slice(0,3));
                         dirTSB = [0,s,b];
@@ -123,9 +119,8 @@ module TSOS {
                     }
                 }
             }
-            if (!dirTSB)
+            if (!dirTSB || !blockTSB)
                 return 1
-            console.log(dirTSB);
             let bytes = _Disk.readDisk(dirTSB);
             //let blockTSB = DDD.stringToTSB(bytes.slice(0,3));
             _Disk.writeDisk(dirTSB, "");
@@ -158,9 +153,45 @@ module TSOS {
             return ret;
         }
 
-        public writeFile(filename: string): number {
+        public writeFile(filename: string, data: string): number {
+            // Return 2 if the file is not found
+            if (this.filenames.indexOf(filename) == -1) {
+                return 2;
+            }
+            let DDD = DeviceDriverDisk;
+            let blockTSB: number[];
+            for (let s = 0; s < Disk.sectorCount; ++s) {
+                for (let b = 1; b < Disk.sectorCount; ++b) {
+                    let bytes = _Disk.readDisk([0,s,b]);
+                    if (DDD.trimFilename(bytes.slice(3)) == filename) {
+                        blockTSB = DDD.stringToTSB(bytes.slice(0,3));
+                        // Break out of the loop
+                        s = 0xff;
+                        b = 0xff;
+                    }
+                }
+            }
+            // This should not need to execute
+            if (!blockTSB) 
+                return 2
 
-            return 1;
+            let blockStatus: number;
+            let bytes: string;
+            let nextTSB: number[];
+            let index = 0;
+            do {
+                console.log(nextTSB);
+                bytes = _Disk.readDisk(blockTSB);
+                blockStatus = parseInt(bytes[0]);
+                nextTSB = DDD.stringToTSB(bytes.slice(1,4));
+                _Disk.writeDisk(blockTSB,
+                        data.slice(index, index + Disk.blockSize - 4));
+                index += Disk.blockSize - 4;
+            } while (blockStatus == 1);
+
+            // TODO Add multi-block support
+            
+            return 0;
         }
 
         public readFile(filename: string): string {

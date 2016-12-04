@@ -209,20 +209,32 @@ var TSOS;
         }
         static hostUpdateDiskDisplay() {
             let html = '';
-            let bytes = _Disk.getImage();
-            for (let i = 0; i < bytes.length; i++) {
-                if (i % Devices.diskRowSize == 0) {
-                    html += "<tr id='diskRow"
-                        + Math.floor(i / Devices.diskRowSize) + "'><td>"
-                        + Devices.formatDiskValue(i)
-                        + "&nbsp</td>";
+            //let bytes: string = _Disk.getImage();
+            let t = 0, s = 0, b = 0;
+            while (t < 4) {
+                let bytes = _Disk.readDisk([t, s, b]);
+                for (let i = 0; i < bytes.length; i++) {
+                    if (i % Devices.diskRowSize == 0) {
+                        html += "<tr id='diskRow" +
+                            Math.floor(i / Devices.diskRowSize) + "'><td>" +
+                            t + ':' + s + ':' + b +
+                            "&nbsp</td>";
+                    }
+                    html += "<td id='memCell" + i + "'>"
+                        + Devices.formatValue(bytes.charCodeAt(i), 2)
+                        + "</td>";
+                    Devices.hostSetMemCellColor(i);
+                    if (i % Devices.diskRowSize == Devices.diskRowSize - 1) {
+                        html += "</tr>";
+                    }
                 }
-                html += "<td id='memCell" + i + "'>"
-                    + Devices.formatValue(bytes.charCodeAt(i), 2)
-                    + "</td>";
-                Devices.hostSetMemCellColor(i);
-                if (i % Devices.diskRowSize == Devices.diskRowSize - 1) {
-                    html += "</tr>";
+                if (++b >= TSOS.Disk.blockCount) {
+                    b = 0;
+                    ++s;
+                }
+                if (s >= TSOS.Disk.sectorCount) {
+                    s = 0;
+                    ++t;
                 }
             }
             $('#tableDisk').html(html);

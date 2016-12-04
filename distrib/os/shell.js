@@ -254,6 +254,23 @@ var TSOS;
             }
         }
         shellWrite(args) {
+            let lastArg = args[args.length - 1];
+            if (args[1].charAt(0) != '"' ||
+                lastArg.charAt(lastArg.length - 1) != '"') {
+                _StdOut.putText("Data must be surrounded by quotes.");
+                return;
+            }
+            let data = args.slice(1).join(" ");
+            let ret = _krnDiskDriver.writeFile(args[0], data);
+            if (ret == 0) {
+                _StdOut.putText("Succesfully wrote to file.");
+            }
+            else if (ret == 2) {
+                _StdOut.putText("File does not exist.");
+            }
+            else {
+                _StdOut.putText("Unable to write to file.");
+            }
         }
         shellRead(args) {
             _StdOut.putText();
