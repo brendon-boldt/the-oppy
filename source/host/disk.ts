@@ -108,13 +108,14 @@ export class Disk {
                 data += Array(Disk.blockSize - data.length + 1)
                         .join(Disk.nullChar);
             }
-            sessionStorage.setItem(tsb[0]+':'+tsb[1]+':'+tsb[2], data);
+            let str = tsb[0]+':'+tsb[1]+':'+tsb[2];
+            sessionStorage.setItem(str, data);
             //this.bytes = this.bytes.slice(0, addr)
                     //+ data
                     //+ this.bytes.slice(addr + data.length);
             console.log('one');
             if (update !== false)
-                setTimeout(Devices.hostUpdateDiskDisplay, 0);
+                Devices.hostUpdateDiskDisplay([str]);
             console.log('two');
             return 0;
         } else {
@@ -122,6 +123,14 @@ export class Disk {
             return 1;
         }
 
+    }
+
+    public string_readDisk(str: string): string {
+        let arr = str.split(':'); 
+        return this.readDisk([
+                parseInt(arr[0]),
+                parseInt(arr[1]),
+                parseInt(arr[2])]);
     }
 
     public readDisk(tsb: number[]): string {

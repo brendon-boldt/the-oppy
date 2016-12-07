@@ -119,7 +119,7 @@ module TSOS {
             _PCB = new Pcb();
             _MMU = new Mmu();
             _Disk = new Disk();
-            TSOS.Devices.hostUpdateDiskDisplay();
+            TSOS.Devices.hostCreateDiskDisplay();
 
 
 

@@ -234,20 +234,47 @@ module TSOS {
                 + Math.floor((addr % sectorSize)/Disk.blockSize);
         }
 
-        public static hostUpdateDiskDisplay() {
+        public static hostUpdateDiskDisplay(rows: string[]): void {
+            for (let row of rows) {
+                let elem: any = document.getElementById('diskRow'+row);
+                let bytes = _Disk.string_readDisk(row);
+                let html = "";
+                for (let i = 0; i < bytes.length; i++) {
+                    if (i % Devices.diskRowSize == 0) {
+                        html += "<tr id='diskRow" +
+                            //Math.floor(i/Devices.diskRowSize)+"'><td>" +
+                            row+"'><td>" +
+                            row +
+                            "&nbsp</td>";    
+                    }
+                    html += "<td id='diskCell"+i+"'>"
+                        + Devices.formatValue(bytes.charCodeAt(i), 2)
+                        + "</td>"; 
+                    //Devices.hostSetMemCellColor(i);
+                    if (i % Devices.diskRowSize == Devices.diskRowSize-1) {
+                        html += "</tr>";
+                    }
+                }
+                elem.outerHTML = html;
+            }
+        }
+
+        public static hostCreateDiskDisplay(): void {
             let html:string = '';
             //let bytes: string = _Disk.getImage();
             let t = 0, s = 0, b = 0;
             while (t < 4) {
                 let bytes = _Disk.readDisk([t,s,b]);
+                let str = t+':'+s+':'+b;
                 for (let i = 0; i < bytes.length; i++) {
                     if (i % Devices.diskRowSize == 0) {
                         html += "<tr id='diskRow" +
-                            Math.floor(i/Devices.diskRowSize)+"'><td>" +
-                            t + ':' + s + ':' + b +
+                            //Math.floor(i/Devices.diskRowSize)+"'><td>" +
+                            str+"'><td>" +
+                            str +
                             "&nbsp</td>";    
                     }
-                    html += "<td id='memCell"+i+"'>"
+                    html += "<td id='diskCell"+i+"'>"
                         + Devices.formatValue(bytes.charCodeAt(i), 2)
                         + "</td>"; 
                     Devices.hostSetMemCellColor(i);

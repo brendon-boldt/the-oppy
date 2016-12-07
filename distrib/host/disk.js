@@ -84,13 +84,14 @@ var TSOS;
                     data += Array(Disk.blockSize - data.length + 1)
                         .join(Disk.nullChar);
                 }
-                sessionStorage.setItem(tsb[0] + ':' + tsb[1] + ':' + tsb[2], data);
+                let str = tsb[0] + ':' + tsb[1] + ':' + tsb[2];
+                sessionStorage.setItem(str, data);
                 //this.bytes = this.bytes.slice(0, addr)
                 //+ data
                 //+ this.bytes.slice(addr + data.length);
                 console.log('one');
                 if (update !== false)
-                    setTimeout(TSOS.Devices.hostUpdateDiskDisplay, 0);
+                    TSOS.Devices.hostUpdateDiskDisplay([str]);
                 console.log('two');
                 return 0;
             }
@@ -98,6 +99,13 @@ var TSOS;
                 // TODO Add error on incorrect TSB
                 return 1;
             }
+        }
+        string_readDisk(str) {
+            let arr = str.split(':');
+            return this.readDisk([
+                parseInt(arr[0]),
+                parseInt(arr[1]),
+                parseInt(arr[2])]);
         }
         readDisk(tsb) {
             if (tsb[0] < Disk.trackCount &&
