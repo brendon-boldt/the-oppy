@@ -5,7 +5,8 @@ body {
    */
   /*background: url(distrib/images/pattern.png) repeat;*/
   transition: 1s;
-  font-family: Helvetica, Verdana, Arial, sans-serif;
+  //font-family: Helvetica, Verdana, Arial, sans-serif;
+  font-family: monospace;
   font-size: 12pt;
   font-weight: normal;
   font-style: normal;

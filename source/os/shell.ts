@@ -32,6 +32,11 @@ module TSOS {
 
 
             // Load the command list.
+            sc = new ShellCommand(this.shellFormat,
+                                  "format",
+                                  " - Format the disk.");
+            this.commandList[this.commandList.length] = sc;
+
             sc = new ShellCommand(this.shellCreate,
                                   "create",
                                   "<filename> - Creates a file.");
@@ -354,6 +359,8 @@ module TSOS {
                 let ret = _krnDiskDriver.createFile(args[0]);
                 if (ret == 0) {
                     _StdOut.putText("File was created succesfully.");
+                } else if (ret == 3) {
+                    _StdOut.putText("Insufficient disk space for file.");
                 } else {
                     _StdOut.putText("File creation failed.");
                 }
@@ -389,10 +396,19 @@ module TSOS {
                     _StdOut.putText("Succesfully wrote to file.");
                 } else if (ret == 2) {
                     _StdOut.putText("File does not exist.");
+                } else if (ret == 3) {
+                    _StdOut.putText("Warning: File truncated due to "
+                                    +"insufficient space.");
                 } else {
                     _StdOut.putText("Unable to write to file.");
                 }
             }
+        }
+
+        public shellFormat(): void {
+            // TODO Add logic to prevent formatting at inconvenient times
+            _StdOut.putText("Formatting drive.");
+            _krnDiskDriver.formatDisk();
         }
 
         public shellRead(args): void {
@@ -608,7 +624,8 @@ module TSOS {
             _StdOut.putText("Commands:");
             for (var i in _OsShell.commandList) {
                 _StdOut.advanceLine();
-                _StdOut.putText("  " + _OsShell.commandList[i].command + " " + _OsShell.commandList[i].description);
+                _StdOut.putText("  " + _OsShell.commandList[i].command +
+                            " " + _OsShell.commandList[i].description);
             }
         }
 

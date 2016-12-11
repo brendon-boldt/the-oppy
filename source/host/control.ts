@@ -155,7 +155,7 @@ module TSOS {
             if (_SSMode == false) {
                 $('#btnSSMode').addClass('btn-success');
                 $('#btnSSMode').removeClass('btn-danger');
-                $('#btnSSMode').prop('value','Single-Step: ON');
+                $('#btnSSMode').prop('value','Single-Step: ON ');
                 $('#btnStep').prop('disabled', false);
                 _SSMode = true;
             } else {

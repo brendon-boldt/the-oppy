@@ -52,7 +52,7 @@ export class Disk {
 
     constructor() {
         let mbr = sessionStorage.getItem("0:0:0");
-        if (true || !mbr) {
+        if (!mbr) {
             this.formatDisk();
         }
     }
@@ -72,7 +72,7 @@ export class Disk {
                     //sessionStorage.setItem(t+':'+s+':'+b,
                             //new Array(this.getDiskSize+1).join(Disk.nullChar));
                     //console.log("writing: " + [t,s,b]);
-                    this.writeDisk([t,s,b], "", false);
+                    this.writeDisk([t,s,b], "", true);
                 }
             }
         }

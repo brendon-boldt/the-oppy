@@ -9,6 +9,7 @@ module TSOS {
         constructor() {
             super();
             this.driverEntry = this.krnDskDriverEntry;
+            this.populateFilenames();
         }
 
         public krnDskDriverEntry() {
@@ -42,10 +43,24 @@ module TSOS {
 
         private filenames: string[] = [];
 
+        private populateFilenames(): void {
+            let DDD = DeviceDriverDisk;
+            let filename: string;
+            for (let s = 0; s < Disk.sectorCount; ++s) {
+                for (let b = 1; b < Disk.sectorCount; ++b) {
+                    let bytes = _Disk.readDisk([0,s,b]);
+                    filename = DDD.trimFilename(bytes.slice(3));
+                    if (filename.length > 0) {
+                        this.filenames.push(filename);
+                    }
+                }
+            }
+        }
+
         // TODO Cache open block detail
         private nextOpenDirEntry(): number[] {
             for (let s = 0; s < Disk.sectorCount; ++s) {
-                for (let b = 1; b < Disk.sectorCount; ++b) {
+                for (let b = 1; b < Disk.blockCount; ++b) {
                     let bytes = _Disk.readDisk([0,s,b]);
                     if (bytes[0] == String.fromCharCode(0) &&
                             bytes[1] == String.fromCharCode(0) &&
@@ -59,14 +74,14 @@ module TSOS {
 
         // TODO See above
         private nextOpenBlock(exclude: number[] = [-1,-1,-1]): number[] {
-            for (let t = 1; t < Disk.sectorCount; ++t) {
+            for (let t = 1; t < Disk.trackCount; ++t) {
                 for (let s = 0; s < Disk.sectorCount; ++s) {
-                    for (let b = 0; b < Disk.sectorCount; ++b) {
+                    for (let b = 0; b < Disk.blockCount; ++b) {
                         let bytes = _Disk.readDisk([t,s,b]);
                         if (bytes[0] == DeviceDriverDisk.emptyFlag &&
                                 (exclude[0] != t || 
-                                exclude[1] != s || 
-                                exclude[2] != b))
+                                 exclude[1] != s || 
+                                 exclude[2] != b))
                             return [t,s,b];
                     }
                 }
@@ -74,9 +89,12 @@ module TSOS {
             return undefined;
         }
 
+        // TODO Detect directory overflow
         private createDirectoryEntry(filename: string): number {
             let dirTSB = this.nextOpenDirEntry();
             let blockTSB = this.nextOpenBlock();
+            if (blockTSB == undefined)
+                return 3;
             let data = String.fromCharCode(blockTSB[0]) +
                     String.fromCharCode(blockTSB[1]) +
                     String.fromCharCode(blockTSB[2]) +
@@ -89,21 +107,6 @@ module TSOS {
                 return 1;
             return 0;
         }
-
-        /*
-        private nextOpenDirEntry(): number[] {
-            for (let s = 0; s < Disk.sectorCount; ++s) {
-                for (let b = 1; b < Disk.sectorCount; ++b) {
-                    let bytes = _Disk.readDisk([0,s,b]);
-                    if (bytes[0] == String.fromCharCode(0) &&
-                            bytes[1] == String.fromCharCode(0) &&
-                            bytes[2] == String.fromCharCode(0))
-                        return [0,s,b];
-                }
-            }
-            return undefined;
-        }
-        */
 
         private deleteDirectoryEntry(filename: string): number {
             let DDD = DeviceDriverDisk;
@@ -130,8 +133,6 @@ module TSOS {
 
             return 0;
         }
-
-
 
         public createFile(filename: string): number {
             // Check if the filename exists already
@@ -208,9 +209,10 @@ module TSOS {
                         if (nextTSB == undefined) {
                             blockStatus = -1;
                             newStatus = 2;
-                            returnStatus = 2; 
+                            returnStatus = 3; 
                             nextTSB = [0xfe,0xfe,0xfe];
-                        }                    } else {
+                        }
+                    } else {
                         nextTSB = [0xff,0xff,0xff];
                     }
                 }
@@ -268,6 +270,9 @@ module TSOS {
             return data.join("");
         }
 
+        public formatDisk(): void {
+            _Disk.formatDisk();
+        }
 
     }
 }

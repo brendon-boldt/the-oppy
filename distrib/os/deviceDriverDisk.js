@@ -8,6 +8,7 @@ var TSOS;
             super();
             this.filenames = [];
             this.driverEntry = this.krnDskDriverEntry;
+            this.populateFilenames();
         }
         krnDskDriverEntry() {
             this.status = "loaded";
@@ -32,10 +33,23 @@ var TSOS;
                     str[2].charCodeAt(0)];
             }
         }
+        populateFilenames() {
+            let DDD = DeviceDriverDisk;
+            let filename;
+            for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
+                for (let b = 1; b < TSOS.Disk.sectorCount; ++b) {
+                    let bytes = _Disk.readDisk([0, s, b]);
+                    filename = DDD.trimFilename(bytes.slice(3));
+                    if (filename.length > 0) {
+                        this.filenames.push(filename);
+                    }
+                }
+            }
+        }
         // TODO Cache open block detail
         nextOpenDirEntry() {
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
-                for (let b = 1; b < TSOS.Disk.sectorCount; ++b) {
+                for (let b = 1; b < TSOS.Disk.blockCount; ++b) {
                     let bytes = _Disk.readDisk([0, s, b]);
                     if (bytes[0] == String.fromCharCode(0) &&
                         bytes[1] == String.fromCharCode(0) &&
@@ -47,9 +61,9 @@ var TSOS;
         }
         // TODO See above
         nextOpenBlock(exclude = [-1, -1, -1]) {
-            for (let t = 1; t < TSOS.Disk.sectorCount; ++t) {
+            for (let t = 1; t < TSOS.Disk.trackCount; ++t) {
                 for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
-                    for (let b = 0; b < TSOS.Disk.sectorCount; ++b) {
+                    for (let b = 0; b < TSOS.Disk.blockCount; ++b) {
                         let bytes = _Disk.readDisk([t, s, b]);
                         if (bytes[0] == DeviceDriverDisk.emptyFlag &&
                             (exclude[0] != t ||
@@ -61,9 +75,12 @@ var TSOS;
             }
             return undefined;
         }
+        // TODO Detect directory overflow
         createDirectoryEntry(filename) {
             let dirTSB = this.nextOpenDirEntry();
             let blockTSB = this.nextOpenBlock();
+            if (blockTSB == undefined)
+                return 3;
             let data = String.fromCharCode(blockTSB[0]) +
                 String.fromCharCode(blockTSB[1]) +
                 String.fromCharCode(blockTSB[2]) +
@@ -76,20 +93,6 @@ var TSOS;
                 return 1;
             return 0;
         }
-        /*
-        private nextOpenDirEntry(): number[] {
-            for (let s = 0; s < Disk.sectorCount; ++s) {
-                for (let b = 1; b < Disk.sectorCount; ++b) {
-                    let bytes = _Disk.readDisk([0,s,b]);
-                    if (bytes[0] == String.fromCharCode(0) &&
-                            bytes[1] == String.fromCharCode(0) &&
-                            bytes[2] == String.fromCharCode(0))
-                        return [0,s,b];
-                }
-            }
-            return undefined;
-        }
-        */
         deleteDirectoryEntry(filename) {
             let DDD = DeviceDriverDisk;
             let dirTSB;
@@ -185,7 +188,7 @@ var TSOS;
                         if (nextTSB == undefined) {
                             blockStatus = -1;
                             newStatus = 2;
-                            returnStatus = 2;
+                            returnStatus = 3;
                             nextTSB = [0xfe, 0xfe, 0xfe];
                         }
                     }
@@ -239,6 +242,9 @@ var TSOS;
                 data.push(bytes.slice(4));
             } while (blockStatus == 1);
             return data.join("");
+        }
+        formatDisk() {
+            _Disk.formatDisk();
         }
     }
     DeviceDriverDisk.emptyFlag = String.fromCharCode(0);
