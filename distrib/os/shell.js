@@ -233,14 +233,24 @@ var TSOS;
             }
             return str;
         }
+        static checkValidFilename(name, print = true) {
+            if (name == undefined) {
+                if (print)
+                    _StdOut.putText("Filename cannot be empty.");
+                return false;
+            }
+            return true;
+        }
         shellCreate(args) {
             // TODO Check name validity
-            let ret = _krnDiskDriver.createFile(args[0]);
-            if (ret == 0) {
-                _StdOut.putText("File was created succesfully.");
-            }
-            else {
-                _StdOut.putText("File creation failed.");
+            if (Shell.checkValidFilename(args[0])) {
+                let ret = _krnDiskDriver.createFile(args[0]);
+                if (ret == 0) {
+                    _StdOut.putText("File was created succesfully.");
+                }
+                else {
+                    _StdOut.putText("File creation failed.");
+                }
             }
         }
         shellDelete(args) {
@@ -254,22 +264,29 @@ var TSOS;
             }
         }
         shellWrite(args) {
-            let lastArg = args[args.length - 1];
-            if (args[1].charAt(0) != '"' ||
-                lastArg.charAt(lastArg.length - 1) != '"') {
-                _StdOut.putText("Data must be surrounded by quotes.");
+            if (args.length < 2) {
+                _StdOut.putText("Too few arguements specified.");
                 return;
             }
-            let data = args.slice(1).join(" ");
-            let ret = _krnDiskDriver.writeFile(args[0], data);
-            if (ret == 0) {
-                _StdOut.putText("Succesfully wrote to file.");
-            }
-            else if (ret == 2) {
-                _StdOut.putText("File does not exist.");
-            }
-            else {
-                _StdOut.putText("Unable to write to file.");
+            if (Shell.checkValidFilename(args[0])) {
+                let lastArg = args[args.length - 1];
+                if (args[1].charAt(0) != '"' ||
+                    lastArg.charAt(lastArg.length - 1) != '"') {
+                    _StdOut.putText("Data must be surrounded by quotes.");
+                    return;
+                }
+                let data = args.slice(1).join(" ");
+                data = data.slice(1, data.length - 1);
+                let ret = _krnDiskDriver.writeFile(args[0], data);
+                if (ret == 0) {
+                    _StdOut.putText("Succesfully wrote to file.");
+                }
+                else if (ret == 2) {
+                    _StdOut.putText("File does not exist.");
+                }
+                else {
+                    _StdOut.putText("Unable to write to file.");
+                }
             }
         }
         shellRead(args) {

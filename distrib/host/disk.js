@@ -89,10 +89,8 @@ var TSOS;
                 //this.bytes = this.bytes.slice(0, addr)
                 //+ data
                 //+ this.bytes.slice(addr + data.length);
-                console.log('one');
                 if (update !== false)
                     TSOS.Devices.hostUpdateDiskDisplay([str]);
-                console.log('two');
                 return 0;
             }
             else {

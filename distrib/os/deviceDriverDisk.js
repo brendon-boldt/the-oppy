@@ -46,12 +46,15 @@ var TSOS;
             return undefined;
         }
         // TODO See above
-        nextOpenBlock() {
+        nextOpenBlock(exclude = [-1, -1, -1]) {
             for (let t = 1; t < TSOS.Disk.sectorCount; ++t) {
                 for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
                     for (let b = 0; b < TSOS.Disk.sectorCount; ++b) {
                         let bytes = _Disk.readDisk([t, s, b]);
-                        if (bytes[0] == DeviceDriverDisk.emptyFlag)
+                        if (bytes[0] == DeviceDriverDisk.emptyFlag &&
+                            (exclude[0] != t ||
+                                exclude[1] != s ||
+                                exclude[2] != b))
                             return [t, s, b];
                     }
                 }
@@ -68,7 +71,6 @@ var TSOS;
             let ret = _Disk.writeDisk(dirTSB, data);
             if (ret != 0)
                 return 1;
-            //console.log("Writing to: " + blockTSB);
             ret = _Disk.writeDisk(blockTSB, DeviceDriverDisk.finalFlag);
             if (ret != 0)
                 return 1;
@@ -110,7 +112,6 @@ var TSOS;
             //let blockTSB = DDD.stringToTSB(bytes.slice(0,3));
             _Disk.writeDisk(dirTSB, "");
             _Disk.writeDisk(blockTSB, "");
-            // TODO Add multi-block support
             return 0;
         }
         createFile(filename) {
@@ -126,8 +127,9 @@ var TSOS;
             let ret = 1;
             let index = this.filenames.indexOf(filename);
             if (index != -1) {
+                this.writeFile(filename, "");
                 ret = this.deleteDirectoryEntry(filename);
-                this.filenames.slice(0, index).concat(this.filenames.slice(index + 1, filename.length));
+                this.filenames = this.filenames.slice(0, index).concat(this.filenames.slice(index + 1, filename.length));
             }
             return ret;
         }
@@ -152,20 +154,54 @@ var TSOS;
             // This should not need to execute
             if (!blockTSB)
                 return 2;
+            let returnStatus = 0;
             let blockStatus;
+            let newStatus;
             let bytes;
-            let nextTSB;
+            let nextTSB = blockTSB;
+            //let nextTSB: number[];
             let index = 0;
             do {
-                console.log(nextTSB);
+                blockTSB = nextTSB;
+                nextTSB = undefined;
                 bytes = _Disk.readDisk(blockTSB);
-                blockStatus = parseInt(bytes[0]);
-                nextTSB = DDD.stringToTSB(bytes.slice(1, 4));
-                _Disk.writeDisk(blockTSB, data.slice(index, index + TSOS.Disk.blockSize - 4));
+                blockStatus = bytes.charCodeAt(0);
+                if (blockStatus == 1) {
+                    nextTSB = DDD.stringToTSB(bytes.slice(1, 4));
+                }
+                if ((data.length - index) < 0) {
+                    newStatus = 0;
+                }
+                else if ((data.length - index) <= TSOS.Disk.blockSize - 4) {
+                    newStatus = 2;
+                }
+                else {
+                    newStatus = 1;
+                    blockStatus = 1;
+                }
+                if (nextTSB == undefined) {
+                    if (newStatus == 1) {
+                        nextTSB = this.nextOpenBlock(blockTSB);
+                        if (nextTSB == undefined) {
+                            blockStatus = -1;
+                            newStatus = 2;
+                            returnStatus = 2;
+                            nextTSB = [0xfe, 0xfe, 0xfe];
+                        }
+                    }
+                    else {
+                        nextTSB = [0xff, 0xff, 0xff];
+                    }
+                }
+                let buffer = String.fromCharCode(newStatus) +
+                    String.fromCharCode(nextTSB[0]) +
+                    String.fromCharCode(nextTSB[1]) +
+                    String.fromCharCode(nextTSB[2]) +
+                    data.slice(index, index + TSOS.Disk.blockSize - 4);
+                _Disk.writeDisk(blockTSB, buffer);
                 index += TSOS.Disk.blockSize - 4;
             } while (blockStatus == 1);
-            // TODO Add multi-block support
-            return 0;
+            return returnStatus;
         }
         readFile(filename) {
             return "";

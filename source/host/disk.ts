@@ -113,10 +113,8 @@ export class Disk {
             //this.bytes = this.bytes.slice(0, addr)
                     //+ data
                     //+ this.bytes.slice(addr + data.length);
-            console.log('one');
             if (update !== false)
                 Devices.hostUpdateDiskDisplay([str]);
-            console.log('two');
             return 0;
         } else {
             // TODO Add error on incorrect TSB
