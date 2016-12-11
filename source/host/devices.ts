@@ -239,15 +239,22 @@ module TSOS {
                 let elem: any = document.getElementById('diskRow'+row);
                 let bytes = _Disk.string_readDisk(row);
                 let html = "";
+                let cellStyle: string;
                 for (let i = 0; i < bytes.length; i++) {
                     if (i % Devices.diskRowSize == 0) {
                         html += "<tr id='diskRow" +
                             //Math.floor(i/Devices.diskRowSize)+"'><td>" +
-                            row+"'><td>" +
+                            row+"'><td style='font-weight:bold'>" +
                             row +
                             "&nbsp</td>";    
+                        cellStyle = "color: blue;";
+                    } else if (i % Devices.diskRowSize > 0 &&
+                               i % Devices.diskRowSize < 4) {
+                        cellStyle = "color: #1e90ff;";
+                    } else {
+                        cellStyle = "";
                     }
-                    html += "<td id='diskCell"+i+"'>"
+                    html += "<td id='diskCell"+i+"' style='"+cellStyle+"'>"
                         + Devices.formatValue(bytes.charCodeAt(i), 2)
                         + "</td>"; 
                     //Devices.hostSetMemCellColor(i);
@@ -263,6 +270,7 @@ module TSOS {
             let html:string = '';
             //let bytes: string = _Disk.getImage();
             let t = 0, s = 0, b = 0;
+            let cellStyle: string;
             while (t < 4) {
                 let bytes = _Disk.readDisk([t,s,b]);
                 let str = t+':'+s+':'+b;
@@ -270,14 +278,20 @@ module TSOS {
                     if (i % Devices.diskRowSize == 0) {
                         html += "<tr id='diskRow" +
                             //Math.floor(i/Devices.diskRowSize)+"'><td>" +
-                            str+"'><td>" +
+                            str+"'><td style='font-weight:bold'>" +
                             str +
                             "&nbsp</td>";    
+                        cellStyle = "color: blue;";
+                    } else if (i % Devices.diskRowSize > 0 &&
+                               i % Devices.diskRowSize < 4) {
+                        cellStyle = "color: #1e90ff;";
+                    } else {
+                        cellStyle = "";
                     }
-                    html += "<td id='diskCell"+i+"'>"
+                    html += "<td id='diskCell"+i+"' style='"+cellStyle+"'>"
                         + Devices.formatValue(bytes.charCodeAt(i), 2)
                         + "</td>"; 
-                    Devices.hostSetMemCellColor(i);
+                    //Devices.hostSetMemCellColor(i);
                     if (i % Devices.diskRowSize == Devices.diskRowSize-1) {
                         html += "</tr>";
                     }
