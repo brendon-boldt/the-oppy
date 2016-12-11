@@ -228,8 +228,44 @@ module TSOS {
         }
 
         public readFile(filename: string): string {
+            // Return 2 if the file is not found
+            if (this.filenames.indexOf(filename) == -1) {
+                return undefined;
+            }
+            let DDD = DeviceDriverDisk;
+            let blockTSB: number[];
+            for (let s = 0; s < Disk.sectorCount; ++s) {
+                for (let b = 1; b < Disk.sectorCount; ++b) {
+                    let bytes = _Disk.readDisk([0,s,b]);
+                    if (DDD.trimFilename(bytes.slice(3)) == filename) {
+                        blockTSB = DDD.stringToTSB(bytes.slice(0,3));
+                        // Break out of the loop
+                        s = 0xff;
+                        b = 0xff;
+                    }
+                }
+            }
+            // This should not need to execute
+            if (!blockTSB) 
+                return undefined;
 
-            return "";
+            let data: string[] = [];
+            let blockStatus: number;
+            let bytes: string;
+            let nextTSB: number[] = blockTSB;
+            //let nextTSB: number[];
+            let index = 0;
+            do {
+                bytes = _Disk.readDisk(nextTSB);
+                blockStatus = bytes.charCodeAt(0);
+                if (blockStatus == 1) {
+                    nextTSB = DDD.stringToTSB(bytes.slice(1,4));
+                }
+                data.push(bytes.slice(4))
+            } while (blockStatus == 1);
+
+
+            return data.join("");
         }
 
 

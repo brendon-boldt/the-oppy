@@ -204,7 +204,41 @@ var TSOS;
             return returnStatus;
         }
         readFile(filename) {
-            return "";
+            // Return 2 if the file is not found
+            if (this.filenames.indexOf(filename) == -1) {
+                return undefined;
+            }
+            let DDD = DeviceDriverDisk;
+            let blockTSB;
+            for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
+                for (let b = 1; b < TSOS.Disk.sectorCount; ++b) {
+                    let bytes = _Disk.readDisk([0, s, b]);
+                    if (DDD.trimFilename(bytes.slice(3)) == filename) {
+                        blockTSB = DDD.stringToTSB(bytes.slice(0, 3));
+                        // Break out of the loop
+                        s = 0xff;
+                        b = 0xff;
+                    }
+                }
+            }
+            // This should not need to execute
+            if (!blockTSB)
+                return undefined;
+            let data = [];
+            let blockStatus;
+            let bytes;
+            let nextTSB = blockTSB;
+            //let nextTSB: number[];
+            let index = 0;
+            do {
+                bytes = _Disk.readDisk(nextTSB);
+                blockStatus = bytes.charCodeAt(0);
+                if (blockStatus == 1) {
+                    nextTSB = DDD.stringToTSB(bytes.slice(1, 4));
+                }
+                data.push(bytes.slice(4));
+            } while (blockStatus == 1);
+            return data.join("");
         }
     }
     DeviceDriverDisk.emptyFlag = String.fromCharCode(0);

@@ -290,7 +290,15 @@ var TSOS;
             }
         }
         shellRead(args) {
-            _StdOut.putText();
+            if (Shell.checkValidFilename(args[0])) {
+                let data = _krnDiskDriver.readFile(args[0]);
+                if (data == undefined) {
+                    _StdOut.putText("Failed to read file: " + args[0]);
+                }
+                else {
+                    _StdOut.putText(data);
+                }
+            }
         }
         shellPs() {
             let cts = _PCB.getProcessesByState(0xff);
