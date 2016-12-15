@@ -17,12 +17,32 @@ var TSOS;
                 case MODE_ROUND_ROBIN:
                     this.roundRobin();
                     break;
+                case MODE_PRIORITY:
+                    this.priority();
+                    break;
                 case MODE_FCFS:
                     this.firstComeFristServe();
                     break;
                 default:
                     // Maybe I should default to last come first serve.
                     this.roundRobin();
+            }
+        }
+        /** Priority scheduling
+         */
+        priority() {
+            let procs = _PCB.getProcessesByState(STATE_WAITING);
+            if (procs.length > 0) {
+                let ct = procs[0];
+                for (let i = 1; i < procs.length; ++i) {
+                    if (procs[i].priority < ct.priority) {
+                        ct = procs[i];
+                    }
+                }
+                if (!this.CPU.isExecuting) {
+                    _Kernel.krnTrace("Priority: switching to PID " + ct.pid);
+                    this.CPU.startExecution(ct);
+                }
             }
         }
         /** Self explanatory.

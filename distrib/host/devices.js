@@ -200,6 +200,9 @@ var TSOS;
                 case MODE_FCFS:
                     str = "FCFS";
                     break;
+                case MODE_PRIORITY:
+                    str = "Priority";
+                    break;
                 case MODE_ROUND_ROBIN:
                     str = "Round Robin";
                     break;

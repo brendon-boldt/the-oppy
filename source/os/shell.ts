@@ -32,6 +32,11 @@ module TSOS {
 
 
             // Load the command list.
+            sc = new ShellCommand(this.shellLs,
+                                  "ls",
+                                  " - List files on the disk.");
+            this.commandList[this.commandList.length] = sc;
+
             sc = new ShellCommand(this.shellFormat,
                                   "format",
                                   " - Format the disk.");
@@ -114,7 +119,7 @@ module TSOS {
 
             sc = new ShellCommand(this.shellLoad,
                                   "load",
-                                  " - Loads the user program in the text area.");
+                                  " <priority> - Loads the user program in the text area with optional priority value.");
             this.commandList[this.commandList.length] = sc;
 
             sc = new ShellCommand(this.shellStatus,
@@ -358,6 +363,10 @@ module TSOS {
             return true;
         }
 
+        public shellLs(args): void {
+
+        }
+
         public shellCreate(args): void {
             // TODO Check name validity
             if (Shell.checkValidFilename(args[0])) {
@@ -472,6 +481,9 @@ module TSOS {
                 case 'fcfs':
                     _Scheduler.mode = MODE_FCFS;
                     break;
+                case 'priority':
+                    _Scheduler.mode = MODE_PRIORITY;
+                    break;
                 case 'rr':
                     _Scheduler.mode = MODE_ROUND_ROBIN;
                     break;
@@ -558,12 +570,25 @@ module TSOS {
             return opChars;
         }
 
-        public shellLoad(): void {
+        public shellLoad(args): void {
             let text: string = TSOS.Control.hostGetUPI();
             let opChars: number[] = Shell.validateProgramInput(text);
             if (opChars.length != 0) {
-                //_Memory.setBytes(0, opChars);
-                let pid = _PCB.loadProcess(opChars);
+                let pid: number;
+                let priority: number;
+                if (args[0] != undefined) {
+                    priority = parseInt(args[0]);
+                    if (isNaN(priority)) {
+                        _StdOut.putText("Priority must be a number.");
+                        pid = -1;
+                    }
+                } else {
+                    priority = 0;
+                }
+
+                if (pid != -1)
+                    pid = _PCB.loadProcess(opChars, priority);
+
                 if (pid != -1) {
                     _StdOut.putText("Program loaded with PID " + pid); 
                 } else {

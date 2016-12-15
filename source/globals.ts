@@ -48,6 +48,7 @@ const STATE_TERMINATED   = 0x8;
 var _Scheduler: TSOS.Scheduler;
 const MODE_FCFS = Symbol();
 const MODE_ROUND_ROBIN = Symbol();
+const MODE_PRIORITY = Symbol();
 
 var _DebugMode = true;
 

@@ -21,6 +21,7 @@ module TSOS {
         public IR: number;
         public state: number = STATE_READY;
         public inMemory: boolean;
+        public priority: number = 0;
 
         public runTime: number = 0;
         public waitTime: number = 0;
@@ -105,9 +106,10 @@ module TSOS {
          * Returns the PID
          * Loads bytes to the first open segment before calling addProcess()
          */
-        public loadProcess(bytes: number[]): number {
+        public loadProcess(bytes: number[], priority: number = 0): number {
             let segNum = this.getNextSegment();
             let ct = new Context();
+            ct.priority = priority;
             if (segNum != undefined) {
                 _MMU.loadBytesToSegment(segNum, bytes); 
                 ct.segment = segNum;

@@ -24,6 +24,8 @@ var TSOS;
         init() {
             var sc;
             // Load the command list.
+            sc = new TSOS.ShellCommand(this.shellLs, "ls", " - List files on the disk.");
+            this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellFormat, "format", " - Format the disk.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellCreate, "create", "<filename> - Creates a file.");
@@ -56,7 +58,7 @@ var TSOS;
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellPanic, "panic", " - Initiates kernel panic.");
             this.commandList[this.commandList.length] = sc;
-            sc = new TSOS.ShellCommand(this.shellLoad, "load", " - Loads the user program in the text area.");
+            sc = new TSOS.ShellCommand(this.shellLoad, "load", " <priority> - Loads the user program in the text area with optional priority value.");
             this.commandList[this.commandList.length] = sc;
             sc = new TSOS.ShellCommand(this.shellStatus, "status", "<string> - Updates the OS text status.");
             this.commandList[this.commandList.length] = sc;
@@ -245,6 +247,8 @@ var TSOS;
             }
             return true;
         }
+        shellLs(args) {
+        }
         shellCreate(args) {
             // TODO Check name validity
             if (Shell.checkValidFilename(args[0])) {
@@ -361,6 +365,9 @@ var TSOS;
                 case 'fcfs':
                     _Scheduler.mode = MODE_FCFS;
                     break;
+                case 'priority':
+                    _Scheduler.mode = MODE_PRIORITY;
+                    break;
                 case 'rr':
                     _Scheduler.mode = MODE_ROUND_ROBIN;
                     break;
@@ -440,12 +447,24 @@ var TSOS;
             }
             return opChars;
         }
-        shellLoad() {
+        shellLoad(args) {
             let text = TSOS.Control.hostGetUPI();
             let opChars = Shell.validateProgramInput(text);
             if (opChars.length != 0) {
-                //_Memory.setBytes(0, opChars);
-                let pid = _PCB.loadProcess(opChars);
+                let pid;
+                let priority;
+                if (args[0] != undefined) {
+                    priority = parseInt(args[0]);
+                    if (isNaN(priority)) {
+                        _StdOut.putText("Priority must be a number.");
+                        pid = -1;
+                    }
+                }
+                else {
+                    priority = 0;
+                }
+                if (pid != -1)
+                    pid = _PCB.loadProcess(opChars, priority);
                 if (pid != -1) {
                     _StdOut.putText("Program loaded with PID " + pid);
                 }

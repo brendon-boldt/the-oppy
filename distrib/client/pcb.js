@@ -16,6 +16,7 @@ var TSOS;
             this.Zflag = Zflag;
             this.segment = segment;
             this.state = STATE_READY;
+            this.priority = 0;
             this.runTime = 0;
             this.waitTime = 0;
         }
@@ -90,9 +91,10 @@ var TSOS;
          * Returns the PID
          * Loads bytes to the first open segment before calling addProcess()
          */
-        loadProcess(bytes) {
+        loadProcess(bytes, priority = 0) {
             let segNum = this.getNextSegment();
             let ct = new Context();
+            ct.priority = priority;
             if (segNum != undefined) {
                 _MMU.loadBytesToSegment(segNum, bytes);
                 ct.segment = segNum;
