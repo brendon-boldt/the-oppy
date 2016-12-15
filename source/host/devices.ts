@@ -170,12 +170,20 @@ module TSOS {
                     return '-';
             }
         }
+        
+        public static translateSwapped(inMemory: boolean): string {
+            if (inMemory)
+                return "No";
+            else
+                return "Yes";
+        }
 
         public static hostUpdatePcbDisplay(): void {
             // TODO fix spacing error
             let html: string = ("<tr>" +
                         "<th>PID</th>" +
                         "<th>State</th>" +
+                        "<th>Swapped</th>" +
                         "<th>PC</th>" +
                         "<th>IR</th>" +
                         "<th>Acc</th>" +
@@ -189,6 +197,7 @@ module TSOS {
                 html += "<tr>";
                 html += "<td>" + Devices.formatValue(ct.pid, 1) + "</td>";
                 html += "<td>" + Devices.translateState(ct.state) + "</td>";
+                html += "<td>" + Devices.translateSwapped(ct.inMemory) + "</td>";
                 html += "<td>" + Devices.formatValue(ct.PC, 3) + "</td>";
                 html += "<td>" + Devices.formatValue(ct.IR, 2) + "</td>";
                 html += "<td>" + Devices.formatValue(ct.Acc, 2) + "</td>";

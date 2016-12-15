@@ -31,7 +31,7 @@ var _Memory;
 var _PCB;
 var _MMU;
 var _Disk;
-var _DefaultMemorySize = 0x200;
+var _DefaultMemorySize = 0x300;
 // Process states
 const STATE_EXECUTING = 0x1;
 const STATE_READY = 0x2;

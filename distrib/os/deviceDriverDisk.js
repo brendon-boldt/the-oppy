@@ -46,6 +46,7 @@ var TSOS;
         }
         nextOpenDirEntryOrFileExists(filename) {
             let DDD = DeviceDriverDisk;
+            let tsb;
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
                 for (let b = 1; b < TSOS.Disk.blockCount; ++b) {
                     let bytes = _Disk.readDisk([0, s, b]);
@@ -55,10 +56,10 @@ var TSOS;
                     if (bytes[0] == String.fromCharCode(0) &&
                         bytes[1] == String.fromCharCode(0) &&
                         bytes[2] == String.fromCharCode(0))
-                        return [0, s, b];
+                        tsb = [0, s, b];
                 }
             }
-            return undefined;
+            return tsb;
         }
         // TODO See above
         nextOpenBlock(exclude = [-1, -1, -1]) {
@@ -90,7 +91,6 @@ var TSOS;
                 String.fromCharCode(blockTSB[2]) +
                 filename;
             let ret = _Disk.writeDisk(dirTSB, data);
-            //let ret = _Disk.writeDisk(dirTSB, 'AAAAAAAAAAAAAAAAAAAAA');
             if (ret != 0)
                 return 1;
             ret = _Disk.writeDisk(blockTSB, DeviceDriverDisk.finalFlag);
@@ -134,7 +134,7 @@ var TSOS;
         }
         deleteFile(filename) {
             let ret = 1;
-            this.writeFile(filename, "");
+            ret = this.writeFile(filename, "");
             ret = this.deleteDirectoryEntry(filename);
             return ret;
         }
@@ -274,8 +274,6 @@ var TSOS;
         rollInProcess(ct, segNum) {
             let filename = DeviceDriverDisk.swapPrefix + ct.pid;
             let byteString = _krnDiskDriver.readFile(filename);
-            if (byteString) {
-            }
             let bytes = byteString.split("").map(function (x) {
                 return x.charCodeAt(0);
             });

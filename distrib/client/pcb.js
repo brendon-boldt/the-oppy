@@ -189,7 +189,7 @@ var TSOS;
                 // Remove the context from the PCB
                 this.processes.splice(index, 1);
                 _CPU.stopExecution();
-                _krnDiskDriver.deleteFile(TSOS.DeviceDriverDisk.swapPrefix + pid);
+                let ret = _krnDiskDriver.deleteFile(TSOS.DeviceDriverDisk.swapPrefix + pid);
                 // Stop executing and update various displays
                 TSOS.Devices.hostUpdatePcbDisplay();
                 _Status = 'idle';

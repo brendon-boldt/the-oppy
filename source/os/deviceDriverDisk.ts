@@ -56,6 +56,7 @@ module TSOS {
 
         private nextOpenDirEntryOrFileExists(filename: string): number[] {
             let DDD = DeviceDriverDisk;
+            let tsb: number[];
             for (let s = 0; s < Disk.sectorCount; ++s) {
                 for (let b = 1; b < Disk.blockCount; ++b) {
                     let bytes = _Disk.readDisk([0,s,b]);
@@ -65,10 +66,10 @@ module TSOS {
                     if (bytes[0] == String.fromCharCode(0) &&
                             bytes[1] == String.fromCharCode(0) &&
                             bytes[2] == String.fromCharCode(0))
-                        return [0,s,b];
+                        tsb = [0,s,b];
                 }
             }
-            return undefined;
+            return tsb;
         }
 
 
@@ -103,7 +104,6 @@ module TSOS {
                     String.fromCharCode(blockTSB[2]) +
                     filename;
             let ret = _Disk.writeDisk(dirTSB, data);
-            //let ret = _Disk.writeDisk(dirTSB, 'AAAAAAAAAAAAAAAAAAAAA');
             if (ret != 0)
                 return 1;
             ret = _Disk.writeDisk(blockTSB, DeviceDriverDisk.finalFlag);
@@ -151,7 +151,7 @@ module TSOS {
 
         public deleteFile(filename: string): number {
             let ret = 1;
-            this.writeFile(filename, "");
+            ret = this.writeFile(filename, "");
             ret = this.deleteDirectoryEntry(filename);
             return ret;
         }
@@ -309,9 +309,6 @@ module TSOS {
             let byteString = _krnDiskDriver.readFile(
                     filename);
 
-            if (byteString) {
-                //alert(filename);
-            }
             let bytes = byteString.split("").map(function (x) {
                 return x.charCodeAt(0);
             });

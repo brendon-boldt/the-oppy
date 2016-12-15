@@ -37,7 +37,7 @@ var _PCB: TSOS.Pcb;
 var _MMU: TSOS.Mmu;
 var _Disk: TSOS.Disk;
 
-var _DefaultMemorySize = 0x200;
+var _DefaultMemorySize = 0x300;
 
 // Process states
 const STATE_EXECUTING    = 0x1;

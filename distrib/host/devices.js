@@ -150,11 +150,18 @@ var TSOS;
                     return '-';
             }
         }
+        static translateSwapped(inMemory) {
+            if (inMemory)
+                return "No";
+            else
+                return "Yes";
+        }
         static hostUpdatePcbDisplay() {
             // TODO fix spacing error
             let html = ("<tr>" +
                 "<th>PID</th>" +
                 "<th>State</th>" +
+                "<th>Swapped</th>" +
                 "<th>PC</th>" +
                 "<th>IR</th>" +
                 "<th>Acc</th>" +
@@ -168,6 +175,7 @@ var TSOS;
                 html += "<tr>";
                 html += "<td>" + Devices.formatValue(ct.pid, 1) + "</td>";
                 html += "<td>" + Devices.translateState(ct.state) + "</td>";
+                html += "<td>" + Devices.translateSwapped(ct.inMemory) + "</td>";
                 html += "<td>" + Devices.formatValue(ct.PC, 3) + "</td>";
                 html += "<td>" + Devices.formatValue(ct.IR, 2) + "</td>";
                 html += "<td>" + Devices.formatValue(ct.Acc, 2) + "</td>";

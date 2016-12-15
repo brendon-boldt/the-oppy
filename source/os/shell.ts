@@ -62,9 +62,14 @@ module TSOS {
                                   "<on | off> - Toggle debug mode.");
             this.commandList[this.commandList.length] = sc;
 
-            sc = new ShellCommand(this.shellSMode,
-                                  "smode",
-                                  "<rr | fcfs>  - Changes the scheduler mode.");
+            sc = new ShellCommand(this.shellGetSchedule,
+                                  "getschedule",
+                                  " - Returns the current scheduler mode.");
+            this.commandList[this.commandList.length] = sc;
+
+            sc = new ShellCommand(this.shellSetSchedule,
+                                  "setschedule",
+                                  "<rr | fcfs | priority> - Changes the scheduler mode.");
             this.commandList[this.commandList.length] = sc;
 
             sc = new ShellCommand(this.shellClearmem,
@@ -407,8 +412,12 @@ module TSOS {
 
         public shellFormat(): void {
             // TODO Add logic to prevent formatting at inconvenient times
-            _StdOut.putText("Formatting drive.");
-            _krnDiskDriver.formatDisk();
+            if (_PCB.processes.length > 0) {
+                _StdOut.putText("Please kill all processes before formatting.");
+            } else {
+                _krnDiskDriver.formatDisk();
+                _StdOut.putText("Formatted drive.");
+            }
         }
 
         public shellRead(args): void {
@@ -442,7 +451,23 @@ module TSOS {
             }
         }
 
-        public shellSMode(args): void {
+        public shellGetSchedule(args): void {
+            switch (_Scheduler.mode) {
+                case MODE_FCFS:
+                    _StdOut.putText("fcfs");
+                    break;
+                case MODE_ROUND_ROBIN:
+                    _StdOut.putText("rr");
+                    break;
+                default:
+            }
+            _StdOut.advanceLine();
+            TSOS.Devices.hostUpdateScheduleDisplay();
+        }
+
+        public shellSetSchedule(args): void {
+            if (args[0] == undefined)
+                args[0] = "";
             switch (args[0].toLowerCase()) {
                 case 'fcfs':
                     _Scheduler.mode = MODE_FCFS;
