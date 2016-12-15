@@ -355,9 +355,14 @@ module TSOS {
 
         private static checkValidFilename(name: string,
               print:boolean = true): boolean {
-            if (name == undefined) {
+            if (name == undefined && name.length > 0) {
                 if (print)
                     _StdOut.putText("Filename cannot be empty.");
+                return false;
+            } else if (name[0] == DeviceDriverDisk.swapPrefix) {
+                if (print)
+                    _StdOut.putText("Illegal initial character: " +
+                            DeviceDriverDisk.swapPrefix);
                 return false;
             }
             return true;
@@ -387,11 +392,14 @@ module TSOS {
 
         public shellDelete(args): void {
             // TODO Check name validity
-            let ret = _krnDiskDriver.deleteFile(args[0]);
-            if (ret == 0) {
-                _StdOut.putText("File was deleted succesfully.");
-            } else {
-                _StdOut.putText("File deletion failed.");
+
+            if (Shell.checkValidFilename(args[0])) {
+                let ret = _krnDiskDriver.deleteFile(args[0]);
+                if (ret == 0) {
+                    _StdOut.putText("File was deleted succesfully.");
+                } else {
+                    _StdOut.putText("File deletion failed.");
+                }
             }
         }
 

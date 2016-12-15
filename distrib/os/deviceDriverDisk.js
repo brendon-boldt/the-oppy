@@ -34,7 +34,9 @@ var TSOS;
         // TODO Cache open block detail
         nextOpenDirEntry() {
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
-                for (let b = 1; b < TSOS.Disk.blockCount; ++b) {
+                for (let b = 0; b < TSOS.Disk.blockCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0, s, b]);
                     if (bytes[0] == String.fromCharCode(0) &&
                         bytes[1] == String.fromCharCode(0) &&
@@ -48,7 +50,9 @@ var TSOS;
             let DDD = DeviceDriverDisk;
             let tsb;
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
-                for (let b = 1; b < TSOS.Disk.blockCount; ++b) {
+                for (let b = 0; b < TSOS.Disk.blockCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0, s, b]);
                     if (DDD.trimFilename(bytes.slice(3)) == filename) {
                         return [];
@@ -84,7 +88,9 @@ var TSOS;
             let blockTSB = this.nextOpenBlock();
             if (blockTSB == undefined)
                 return 3;
-            if (dirTSB.length == 0)
+            else if (dirTSB == undefined)
+                return 5;
+            else if (dirTSB.length == 0)
                 return 4;
             let data = String.fromCharCode(blockTSB[0]) +
                 String.fromCharCode(blockTSB[1]) +
@@ -103,7 +109,9 @@ var TSOS;
             let dirTSB;
             let blockTSB;
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
-                for (let b = 1; b < TSOS.Disk.sectorCount; ++b) {
+                for (let b = 0; b < TSOS.Disk.sectorCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0, s, b]);
                     if (DDD.trimFilename(bytes.slice(3)) == filename) {
                         blockTSB = DDD.stringToTSB(bytes.slice(0, 3));
@@ -126,7 +134,9 @@ var TSOS;
             let DDD = DeviceDriverDisk;
             let filenames = [];
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
-                for (let b = 1; b < TSOS.Disk.sectorCount; ++b) {
+                for (let b = 0; b < TSOS.Disk.sectorCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0, s, b]);
                     let name = DDD.trimFilename(bytes.slice(3));
                     if (name.length != 0)
@@ -155,7 +165,9 @@ var TSOS;
             let DDD = DeviceDriverDisk;
             let blockTSB;
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
-                for (let b = 1; b < TSOS.Disk.sectorCount; ++b) {
+                for (let b = 0; b < TSOS.Disk.sectorCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0, s, b]);
                     //console.log(bytes + " == " + filename)
                     if (DDD.trimFilename(bytes.slice(3)) == filename) {
@@ -220,16 +232,12 @@ var TSOS;
             return returnStatus;
         }
         readFile(filename) {
-            // Return 2 if the file is not found
-            /*
-            if (this.filenames.indexOf(filename) == -1) {
-                return undefined;
-            }
-             */
             let DDD = DeviceDriverDisk;
             let blockTSB;
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
-                for (let b = 1; b < TSOS.Disk.sectorCount; ++b) {
+                for (let b = 0; b < TSOS.Disk.sectorCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0, s, b]);
                     if (DDD.trimFilename(bytes.slice(3)) == filename) {
                         blockTSB = DDD.stringToTSB(bytes.slice(0, 3));
@@ -276,8 +284,10 @@ var TSOS;
             ret = _krnDiskDriver.writeFile(swapFilename, byteString);
             if (ret == 0) {
             }
+            else if (ret == 3 || ret == 5) {
+                return 3;
+            }
             else {
-                // Should I do this?
                 console.log("Error code: " + ret);
                 console.log(new Error().stack);
                 ct.inMemory = undefined;
@@ -287,6 +297,10 @@ var TSOS;
         rollInProcess(ct, segNum) {
             let filename = DeviceDriverDisk.swapPrefix + ct.pid;
             let byteString = _krnDiskDriver.readFile(filename);
+            if (byteString == undefined) {
+                console.log("Could not roll in PID " + ct.pid);
+                console.log(new Error().stack);
+            }
             let bytes = byteString.split("").map(function (x) {
                 return x.charCodeAt(0);
             });
@@ -311,7 +325,13 @@ var TSOS;
                     swapCt.segment = undefined;
                     swapCt.inMemory = false;
                     let bytes = _Memory.getBytes(segment * _MMU.segmentSize, _MMU.segmentSize);
-                    _krnDiskDriver.rollOutProcess(swapCt, bytes);
+                    let ret = _krnDiskDriver.rollOutProcess(swapCt, bytes);
+                    // If no storage space is left
+                    if (ret == 3) {
+                        swapCt.segment = segment;
+                        swapCt.inMemory = true;
+                        return 3;
+                    }
                 }
                 ct.segment = segment;
                 //console.log(segment);

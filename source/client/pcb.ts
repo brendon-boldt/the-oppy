@@ -122,6 +122,7 @@ module TSOS {
                 this.addProcess(ct);
                 ct.inMemory = false;
                 let ret = _krnDiskDriver.rollOutProcess(ct, bytes);
+                console.log(ret);
                 if (ret == 0) {
                     return ct.pid;
                 } else {

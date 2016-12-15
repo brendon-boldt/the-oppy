@@ -240,9 +240,15 @@ var TSOS;
             return str;
         }
         static checkValidFilename(name, print = true) {
-            if (name == undefined) {
+            if (name == undefined && name.length > 0) {
                 if (print)
                     _StdOut.putText("Filename cannot be empty.");
+                return false;
+            }
+            else if (name[0] == TSOS.DeviceDriverDisk.swapPrefix) {
+                if (print)
+                    _StdOut.putText("Illegal initial character: " +
+                        TSOS.DeviceDriverDisk.swapPrefix);
                 return false;
             }
             return true;
@@ -271,12 +277,14 @@ var TSOS;
         }
         shellDelete(args) {
             // TODO Check name validity
-            let ret = _krnDiskDriver.deleteFile(args[0]);
-            if (ret == 0) {
-                _StdOut.putText("File was deleted succesfully.");
-            }
-            else {
-                _StdOut.putText("File deletion failed.");
+            if (Shell.checkValidFilename(args[0])) {
+                let ret = _krnDiskDriver.deleteFile(args[0]);
+                if (ret == 0) {
+                    _StdOut.putText("File was deleted succesfully.");
+                }
+                else {
+                    _StdOut.putText("File deletion failed.");
+                }
             }
         }
         shellWrite(args) {

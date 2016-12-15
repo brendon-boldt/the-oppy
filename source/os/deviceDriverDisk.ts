@@ -43,7 +43,9 @@ module TSOS {
         // TODO Cache open block detail
         private nextOpenDirEntry(): number[] {
             for (let s = 0; s < Disk.sectorCount; ++s) {
-                for (let b = 1; b < Disk.blockCount; ++b) {
+                for (let b = 0; b < Disk.blockCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0,s,b]);
                     if (bytes[0] == String.fromCharCode(0) &&
                             bytes[1] == String.fromCharCode(0) &&
@@ -58,7 +60,9 @@ module TSOS {
             let DDD = DeviceDriverDisk;
             let tsb: number[];
             for (let s = 0; s < Disk.sectorCount; ++s) {
-                for (let b = 1; b < Disk.blockCount; ++b) {
+                for (let b = 0; b < Disk.blockCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0,s,b]);
                     if (DDD.trimFilename(bytes.slice(3)) == filename) {
                         return [];
@@ -97,7 +101,9 @@ module TSOS {
             let blockTSB = this.nextOpenBlock();
             if (blockTSB == undefined)
                 return 3;
-            if (dirTSB.length == 0)
+            else if (dirTSB == undefined)
+                return 5;
+            else if (dirTSB.length == 0)
                 return 4;
             let data = String.fromCharCode(blockTSB[0]) +
                     String.fromCharCode(blockTSB[1]) +
@@ -117,7 +123,9 @@ module TSOS {
             let dirTSB: number[];
             let blockTSB: number[];
             for (let s = 0; s < Disk.sectorCount; ++s) {
-                for (let b = 1; b < Disk.sectorCount; ++b) {
+                for (let b = 0; b < Disk.sectorCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0,s,b]);
                     if (DDD.trimFilename(bytes.slice(3)) == filename) {
                         blockTSB = DDD.stringToTSB(bytes.slice(0,3));
@@ -142,7 +150,9 @@ module TSOS {
             let DDD = DeviceDriverDisk;
             let filenames: string[] = [];
             for (let s = 0; s < Disk.sectorCount; ++s) {
-                for (let b = 1; b < Disk.sectorCount; ++b) {
+                for (let b = 0; b < Disk.sectorCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0,s,b]);
                     let name = DDD.trimFilename(bytes.slice(3));
                     if (name.length != 0)
@@ -174,7 +184,9 @@ module TSOS {
             let DDD = DeviceDriverDisk;
             let blockTSB: number[];
             for (let s = 0; s < Disk.sectorCount; ++s) {
-                for (let b = 1; b < Disk.sectorCount; ++b) {
+                for (let b = 0; b < Disk.sectorCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0,s,b]);
                     //console.log(bytes + " == " + filename)
                     if (DDD.trimFilename(bytes.slice(3)) == filename) {
@@ -242,16 +254,12 @@ module TSOS {
         }
 
         public readFile(filename: string): string {
-            // Return 2 if the file is not found
-            /*
-            if (this.filenames.indexOf(filename) == -1) {
-                return undefined;
-            }
-             */
             let DDD = DeviceDriverDisk;
             let blockTSB: number[];
             for (let s = 0; s < Disk.sectorCount; ++s) {
-                for (let b = 1; b < Disk.sectorCount; ++b) {
+                for (let b = 0; b < Disk.sectorCount; ++b) {
+                    if (s == 0)
+                        ++b;
                     let bytes = _Disk.readDisk([0,s,b]);
                     if (DDD.trimFilename(bytes.slice(3)) == filename) {
                         blockTSB = DDD.stringToTSB(bytes.slice(0,3));
@@ -305,11 +313,12 @@ module TSOS {
             ret = _krnDiskDriver.writeFile(
                     swapFilename,
                      byteString);
+
             if (ret == 0) {
-                // Process could still be in memory, I guess
-                //ct.inMemory = false;
+
+            } else if (ret == 3 || ret == 5) {
+                return 3;
             } else {
-                // Should I do this?
                 console.log("Error code: " + ret);
                 console.log(new Error().stack);
                 ct.inMemory = undefined;
@@ -322,6 +331,10 @@ module TSOS {
             let filename = DeviceDriverDisk.swapPrefix + ct.pid;
             let byteString = _krnDiskDriver.readFile(
                     filename);
+            if (byteString == undefined) {
+                console.log("Could not roll in PID " + ct.pid);
+                console.log(new Error().stack);
+            }
 
             let bytes = byteString.split("").map(function (x) {
                 return x.charCodeAt(0);
@@ -352,7 +365,13 @@ module TSOS {
                             segment * _MMU.segmentSize,
                             _MMU.segmentSize);
 
-                    _krnDiskDriver.rollOutProcess(swapCt, bytes);
+                    let ret = _krnDiskDriver.rollOutProcess(swapCt, bytes);
+                    // If no storage space is left
+                    if (ret == 3) {
+                        swapCt.segment = segment;
+                        swapCt.inMemory = true;
+                        return 3;
+                    }
                 }
                 ct.segment = segment;
                 

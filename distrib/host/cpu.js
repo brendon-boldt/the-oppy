@@ -162,7 +162,12 @@ var TSOS;
             if (ct == undefined) {
                 _Kernel.krnTrapError("Undefined context passed to CPU.");
             }
-            _krnDiskDriver.swapIfNeeded(ct);
+            let ret = _krnDiskDriver.swapIfNeeded(ct);
+            if (ret == 3) {
+                console.log(new Error().stack);
+                _Kernel.krnTrapError("Not enough swap space.");
+                return;
+            }
             this.ct = ct;
             this.isExecuting = true;
             _Status = 'processing';
