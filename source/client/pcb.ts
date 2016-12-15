@@ -20,6 +20,7 @@ module TSOS {
         public pid: number;
         public IR: number;
         public state: number = STATE_READY;
+        public inMemory: boolean;
 
         public runTime: number = 0;
         public waitTime: number = 0;
@@ -106,15 +107,25 @@ module TSOS {
          */
         public loadProcess(bytes: number[]): number {
             let segNum = this.getNextSegment();
+            let ct = new Context();
             if (segNum != undefined) {
                 _MMU.loadBytesToSegment(segNum, bytes); 
-                let ct = new Context();
                 ct.segment = segNum;
+                ct.inMemory = true;
                 return this.addProcess(ct);
             } else {
-                _StdOut.putText("Loading failed: no available segments.");
-                _StdOut.advanceLine();
-                return -1;
+                //_StdOut.putText("Loading failed: no available segments.");
+                //_StdOut.advanceLine();
+                _Kernel.krnTrace("No available segments, swapping new process.");
+                this.addProcess(ct);
+                ct.inMemory = false;
+                let ret = _krnDiskDriver.rollOutProcess(ct, bytes);
+                if (ret == 0) {
+                    return ct.pid;
+                } else {
+                    _StdOut.putText("Rolling out new process failed.");
+                    return -1;
+                }
             }
         }
 
@@ -131,7 +142,7 @@ module TSOS {
          *  The scheduler will handle everything from here.
          */
         public runProcess(pid): void {
-            console.log("Running: " + pid);
+            //console.log("Running: " + pid);
             let ct = this.getProcessByPid(pid);
             ct.state = STATE_WAITING;
         }
@@ -172,10 +183,12 @@ module TSOS {
             let newline = params.newline;
             let ct: Context = this.getProcessByPid(pid);
 
-            console.log("Terminating: " + pid);            
+            //console.log("Terminating: " + pid);            
             if (ct) { // If the proper context was found
                 // Clear the segment
-                _MMU.clearSegment(ct.segment); 
+                if (ct.inMemory) {
+                    _MMU.clearSegment(ct.segment); 
+                }
                 ct.state = STATE_TERMINATED;
 
                 if (_DebugMode) {
@@ -196,6 +209,7 @@ module TSOS {
                 // Remove the context from the PCB
                 this.processes.splice(index, 1)
                 _CPU.stopExecution();
+                _krnDiskDriver.deleteFile(DeviceDriverDisk.swapPrefix + pid);
                 // Stop executing and update various displays
                 Devices.hostUpdatePcbDisplay();
                 _Status = 'idle';

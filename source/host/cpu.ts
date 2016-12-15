@@ -195,11 +195,12 @@ module TSOS {
          */
         public startExecution(ct: Context) {
             // TODO check the address
-            //console.log("Executing");
-            //console.log(ct);
             if (ct == undefined) {
               _Kernel.krnTrapError("Undefined context passed to CPU.");
             }
+
+            _krnDiskDriver.swapIfNeeded(ct);
+
             this.ct = ct;
             this.isExecuting = true;
             _Status = 'processing';

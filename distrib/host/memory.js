@@ -2,7 +2,7 @@
 var TSOS;
 (function (TSOS) {
     class Memory {
-        constructor(bytes = Array(Memory.defaultMemorySize)) {
+        constructor(bytes = Array(_DefaultMemorySize)) {
             this.bytes = bytes;
             // I guess we should initialize the memory to zeros
             for (let i = 0; i < this.bytes.length; i++) {
@@ -39,9 +39,10 @@ var TSOS;
          */
         getBytes(addr, size) {
             if (this.checkAddr(addr) && this.checkAddr(addr + size - 1)) {
-                return this.bytes.slice(addr, size);
+                return this.bytes.slice(addr, addr + size);
             }
             else {
+                console.log("ERROR");
                 alert('Memory address outside of physical memory');
                 return [];
             }
@@ -75,6 +76,5 @@ var TSOS;
             }
         }
     }
-    Memory.defaultMemorySize = 0x300;
     TSOS.Memory = Memory;
 })(TSOS || (TSOS = {}));

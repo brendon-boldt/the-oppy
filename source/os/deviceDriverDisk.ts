@@ -9,7 +9,6 @@ module TSOS {
         constructor() {
             super();
             this.driverEntry = this.krnDskDriverEntry;
-            this.populateFilenames();
         }
 
         public krnDskDriverEntry() {
@@ -41,27 +40,28 @@ module TSOS {
             }
         }
 
-        private filenames: string[] = [];
-
-        private populateFilenames(): void {
-            let DDD = DeviceDriverDisk;
-            let filename: string;
-            for (let s = 0; s < Disk.sectorCount; ++s) {
-                for (let b = 1; b < Disk.sectorCount; ++b) {
-                    let bytes = _Disk.readDisk([0,s,b]);
-                    filename = DDD.trimFilename(bytes.slice(3));
-                    if (filename.length > 0) {
-                        this.filenames.push(filename);
-                    }
-                }
-            }
-        }
-
         // TODO Cache open block detail
         private nextOpenDirEntry(): number[] {
             for (let s = 0; s < Disk.sectorCount; ++s) {
                 for (let b = 1; b < Disk.blockCount; ++b) {
                     let bytes = _Disk.readDisk([0,s,b]);
+                    if (bytes[0] == String.fromCharCode(0) &&
+                            bytes[1] == String.fromCharCode(0) &&
+                            bytes[2] == String.fromCharCode(0))
+                        return [0,s,b];
+                }
+            }
+            return undefined;
+        }
+
+        private nextOpenDirEntryOrFileExists(filename: string): number[] {
+            let DDD = DeviceDriverDisk;
+            for (let s = 0; s < Disk.sectorCount; ++s) {
+                for (let b = 1; b < Disk.blockCount; ++b) {
+                    let bytes = _Disk.readDisk([0,s,b]);
+                    if (DDD.trimFilename(bytes.slice(3)) == filename) {
+                        return [];
+                    }
                     if (bytes[0] == String.fromCharCode(0) &&
                             bytes[1] == String.fromCharCode(0) &&
                             bytes[2] == String.fromCharCode(0))
@@ -89,17 +89,21 @@ module TSOS {
             return undefined;
         }
 
+        // TODO Detect illegal filename (do this in Shell, more likely)
         // TODO Detect directory overflow
         private createDirectoryEntry(filename: string): number {
-            let dirTSB = this.nextOpenDirEntry();
+            let dirTSB = this.nextOpenDirEntryOrFileExists(filename);
             let blockTSB = this.nextOpenBlock();
             if (blockTSB == undefined)
                 return 3;
+            if (dirTSB.length == 0)
+                return 4;
             let data = String.fromCharCode(blockTSB[0]) +
                     String.fromCharCode(blockTSB[1]) +
                     String.fromCharCode(blockTSB[2]) +
                     filename;
             let ret = _Disk.writeDisk(dirTSB, data);
+            //let ret = _Disk.writeDisk(dirTSB, 'AAAAAAAAAAAAAAAAAAAAA');
             if (ret != 0)
                 return 1;
             ret = _Disk.writeDisk(blockTSB, DeviceDriverDisk.finalFlag);
@@ -137,35 +141,28 @@ module TSOS {
         public createFile(filename: string): number {
             // Check if the filename exists already
             let ret = 1;
-            if (this.filenames.indexOf(filename) == -1) {
-                ret = this.createDirectoryEntry(filename);
-                this.filenames.push(filename);
-            } 
+            ret = this.createDirectoryEntry(filename);
+            if (ret == 4) {
+                // File already exists.
+                ret = 0;
+            }
             return ret;
         }
 
         public deleteFile(filename: string): number {
             let ret = 1;
-            let index = this.filenames.indexOf(filename)
-            if (index != -1) {
-                this.writeFile(filename, "");
-                ret = this.deleteDirectoryEntry(filename);
-                this.filenames = this.filenames.slice(0, index).concat( 
-                        this.filenames.slice(index + 1, filename.length));
-            } 
+            this.writeFile(filename, "");
+            ret = this.deleteDirectoryEntry(filename);
             return ret;
         }
 
         public writeFile(filename: string, data: string): number {
-            // Return 2 if the file is not found
-            if (this.filenames.indexOf(filename) == -1) {
-                return 2;
-            }
             let DDD = DeviceDriverDisk;
             let blockTSB: number[];
             for (let s = 0; s < Disk.sectorCount; ++s) {
                 for (let b = 1; b < Disk.sectorCount; ++b) {
                     let bytes = _Disk.readDisk([0,s,b]);
+                    //console.log(bytes + " == " + filename)
                     if (DDD.trimFilename(bytes.slice(3)) == filename) {
                         blockTSB = DDD.stringToTSB(bytes.slice(0,3));
                         // Break out of the loop
@@ -175,8 +172,9 @@ module TSOS {
                 }
             }
             // This should not need to execute
-            if (!blockTSB) 
+            if (!blockTSB) {
                 return 2
+            }
 
             let returnStatus = 0;
             let blockStatus: number;
@@ -231,9 +229,11 @@ module TSOS {
 
         public readFile(filename: string): string {
             // Return 2 if the file is not found
+            /*
             if (this.filenames.indexOf(filename) == -1) {
                 return undefined;
             }
+             */
             let DDD = DeviceDriverDisk;
             let blockTSB: number[];
             for (let s = 0; s < Disk.sectorCount; ++s) {
@@ -272,6 +272,85 @@ module TSOS {
 
         public formatDisk(): void {
             _Disk.formatDisk();
+        }
+
+        public static swapPrefix: string = "~";
+
+        public rollOutProcess(ct: Context, bytes: any): number {
+            //console.log("Roll out: " + ct.pid);
+            // TODO 
+            let byteString ="";// = Array(bytes.length);
+            // = bytes.map(String.fromCharCode).join("");
+            for (let i = 0; i < bytes.length; ++ i) {
+                byteString += String.fromCharCode(bytes[i]);
+            }
+            let swapFilename = DeviceDriverDisk.swapPrefix + ct.pid;
+            let ret = _krnDiskDriver.createFile(swapFilename);
+            if (ret != 0) {
+            }
+            ret = _krnDiskDriver.writeFile(
+                    swapFilename,
+                     byteString);
+            if (ret == 0) {
+                // Process could still be in memory, I guess
+                //ct.inMemory = false;
+            } else {
+                // Should I do this?
+                console.log("Error code: " + ret);
+                console.log(new Error().stack);
+                ct.inMemory = undefined;
+            }
+            return ret;
+        }
+
+        public rollInProcess(ct: Context, segNum: number): number {
+            
+            let filename = DeviceDriverDisk.swapPrefix + ct.pid;
+            let byteString = _krnDiskDriver.readFile(
+                    filename);
+
+            if (byteString) {
+                //alert(filename);
+            }
+            let bytes = byteString.split("").map(function (x) {
+                return x.charCodeAt(0);
+            });
+
+            //console.log(filename);
+            //console.log(bytes);
+            bytes = bytes.slice(0,_MMU.segmentSize);
+
+            _MMU.clearSegment(segNum);
+            _MMU.loadBytesToSegment(segNum, bytes); 
+            ct.segment = segNum;
+            ct.inMemory = true; 
+            return 0;
+        }
+
+        public swapIfNeeded(ct: Context): number {
+            if (!ct.inMemory) {
+                let swapCt = _Scheduler.getNextSwapContext();
+                let segment: number;
+                if (swapCt == undefined) {
+                    segment = 0;
+                } else {
+                    segment = swapCt.segment;
+                    swapCt.segment = undefined;
+                    swapCt.inMemory = false;
+                    let bytes = _Memory.getBytes(
+                            segment * _MMU.segmentSize,
+                            _MMU.segmentSize);
+
+                    _krnDiskDriver.rollOutProcess(swapCt, bytes);
+                }
+                ct.segment = segment;
+                
+                //console.log(segment);
+                _krnDiskDriver.rollInProcess(ct, segment);
+            } else {
+
+            }
+            return 0;
         }
 
     }

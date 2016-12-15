@@ -6,9 +6,7 @@ var TSOS;
     class DeviceDriverDisk extends TSOS.DeviceDriver {
         constructor() {
             super();
-            this.filenames = [];
             this.driverEntry = this.krnDskDriverEntry;
-            this.populateFilenames();
         }
         krnDskDriverEntry() {
             this.status = "loaded";
@@ -33,24 +31,27 @@ var TSOS;
                     str[2].charCodeAt(0)];
             }
         }
-        populateFilenames() {
-            let DDD = DeviceDriverDisk;
-            let filename;
-            for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
-                for (let b = 1; b < TSOS.Disk.sectorCount; ++b) {
-                    let bytes = _Disk.readDisk([0, s, b]);
-                    filename = DDD.trimFilename(bytes.slice(3));
-                    if (filename.length > 0) {
-                        this.filenames.push(filename);
-                    }
-                }
-            }
-        }
         // TODO Cache open block detail
         nextOpenDirEntry() {
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
                 for (let b = 1; b < TSOS.Disk.blockCount; ++b) {
                     let bytes = _Disk.readDisk([0, s, b]);
+                    if (bytes[0] == String.fromCharCode(0) &&
+                        bytes[1] == String.fromCharCode(0) &&
+                        bytes[2] == String.fromCharCode(0))
+                        return [0, s, b];
+                }
+            }
+            return undefined;
+        }
+        nextOpenDirEntryOrFileExists(filename) {
+            let DDD = DeviceDriverDisk;
+            for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
+                for (let b = 1; b < TSOS.Disk.blockCount; ++b) {
+                    let bytes = _Disk.readDisk([0, s, b]);
+                    if (DDD.trimFilename(bytes.slice(3)) == filename) {
+                        return [];
+                    }
                     if (bytes[0] == String.fromCharCode(0) &&
                         bytes[1] == String.fromCharCode(0) &&
                         bytes[2] == String.fromCharCode(0))
@@ -75,17 +76,21 @@ var TSOS;
             }
             return undefined;
         }
+        // TODO Detect illegal filename (do this in Shell, more likely)
         // TODO Detect directory overflow
         createDirectoryEntry(filename) {
-            let dirTSB = this.nextOpenDirEntry();
+            let dirTSB = this.nextOpenDirEntryOrFileExists(filename);
             let blockTSB = this.nextOpenBlock();
             if (blockTSB == undefined)
                 return 3;
+            if (dirTSB.length == 0)
+                return 4;
             let data = String.fromCharCode(blockTSB[0]) +
                 String.fromCharCode(blockTSB[1]) +
                 String.fromCharCode(blockTSB[2]) +
                 filename;
             let ret = _Disk.writeDisk(dirTSB, data);
+            //let ret = _Disk.writeDisk(dirTSB, 'AAAAAAAAAAAAAAAAAAAAA');
             if (ret != 0)
                 return 1;
             ret = _Disk.writeDisk(blockTSB, DeviceDriverDisk.finalFlag);
@@ -120,32 +125,26 @@ var TSOS;
         createFile(filename) {
             // Check if the filename exists already
             let ret = 1;
-            if (this.filenames.indexOf(filename) == -1) {
-                ret = this.createDirectoryEntry(filename);
-                this.filenames.push(filename);
+            ret = this.createDirectoryEntry(filename);
+            if (ret == 4) {
+                // File already exists.
+                ret = 0;
             }
             return ret;
         }
         deleteFile(filename) {
             let ret = 1;
-            let index = this.filenames.indexOf(filename);
-            if (index != -1) {
-                this.writeFile(filename, "");
-                ret = this.deleteDirectoryEntry(filename);
-                this.filenames = this.filenames.slice(0, index).concat(this.filenames.slice(index + 1, filename.length));
-            }
+            this.writeFile(filename, "");
+            ret = this.deleteDirectoryEntry(filename);
             return ret;
         }
         writeFile(filename, data) {
-            // Return 2 if the file is not found
-            if (this.filenames.indexOf(filename) == -1) {
-                return 2;
-            }
             let DDD = DeviceDriverDisk;
             let blockTSB;
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
                 for (let b = 1; b < TSOS.Disk.sectorCount; ++b) {
                     let bytes = _Disk.readDisk([0, s, b]);
+                    //console.log(bytes + " == " + filename)
                     if (DDD.trimFilename(bytes.slice(3)) == filename) {
                         blockTSB = DDD.stringToTSB(bytes.slice(0, 3));
                         // Break out of the loop
@@ -155,8 +154,9 @@ var TSOS;
                 }
             }
             // This should not need to execute
-            if (!blockTSB)
+            if (!blockTSB) {
                 return 2;
+            }
             let returnStatus = 0;
             let blockStatus;
             let newStatus;
@@ -208,9 +208,11 @@ var TSOS;
         }
         readFile(filename) {
             // Return 2 if the file is not found
+            /*
             if (this.filenames.indexOf(filename) == -1) {
                 return undefined;
             }
+             */
             let DDD = DeviceDriverDisk;
             let blockTSB;
             for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
@@ -246,9 +248,72 @@ var TSOS;
         formatDisk() {
             _Disk.formatDisk();
         }
+        rollOutProcess(ct, bytes) {
+            //console.log("Roll out: " + ct.pid);
+            // TODO 
+            let byteString = ""; // = Array(bytes.length);
+            // = bytes.map(String.fromCharCode).join("");
+            for (let i = 0; i < bytes.length; ++i) {
+                byteString += String.fromCharCode(bytes[i]);
+            }
+            let swapFilename = DeviceDriverDisk.swapPrefix + ct.pid;
+            let ret = _krnDiskDriver.createFile(swapFilename);
+            if (ret != 0) {
+            }
+            ret = _krnDiskDriver.writeFile(swapFilename, byteString);
+            if (ret == 0) {
+            }
+            else {
+                // Should I do this?
+                console.log("Error code: " + ret);
+                console.log(new Error().stack);
+                ct.inMemory = undefined;
+            }
+            return ret;
+        }
+        rollInProcess(ct, segNum) {
+            let filename = DeviceDriverDisk.swapPrefix + ct.pid;
+            let byteString = _krnDiskDriver.readFile(filename);
+            if (byteString) {
+            }
+            let bytes = byteString.split("").map(function (x) {
+                return x.charCodeAt(0);
+            });
+            //console.log(filename);
+            //console.log(bytes);
+            bytes = bytes.slice(0, _MMU.segmentSize);
+            _MMU.clearSegment(segNum);
+            _MMU.loadBytesToSegment(segNum, bytes);
+            ct.segment = segNum;
+            ct.inMemory = true;
+            return 0;
+        }
+        swapIfNeeded(ct) {
+            if (!ct.inMemory) {
+                let swapCt = _Scheduler.getNextSwapContext();
+                let segment;
+                if (swapCt == undefined) {
+                    segment = 0;
+                }
+                else {
+                    segment = swapCt.segment;
+                    swapCt.segment = undefined;
+                    swapCt.inMemory = false;
+                    let bytes = _Memory.getBytes(segment * _MMU.segmentSize, _MMU.segmentSize);
+                    _krnDiskDriver.rollOutProcess(swapCt, bytes);
+                }
+                ct.segment = segment;
+                //console.log(segment);
+                _krnDiskDriver.rollInProcess(ct, segment);
+            }
+            else {
+            }
+            return 0;
+        }
     }
     DeviceDriverDisk.emptyFlag = String.fromCharCode(0);
     DeviceDriverDisk.nextFlag = String.fromCharCode(1);
     DeviceDriverDisk.finalFlag = String.fromCharCode(2);
+    DeviceDriverDisk.swapPrefix = "~";
     TSOS.DeviceDriverDisk = DeviceDriverDisk;
 })(TSOS || (TSOS = {}));

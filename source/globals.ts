@@ -14,7 +14,7 @@
 const APP_NAME: string    = "The Oppy";  
 const APP_VERSION: string = "0.04"; 
 
-const CPU_CLOCK_INTERVAL: number = 20;//100;   // This is in ms (milliseconds) so 1000 = 1 second.
+const CPU_CLOCK_INTERVAL: number = 10;//100;   // This is in ms (milliseconds) so 1000 = 1 second.
 
 const TIMER_IRQ: number = 0;  // Pages 23 (timer), 9 (interrupts), and 561 (interrupt priority).
                               // NOTE: The timer is different from hardware/host clock pulses. Don't confuse these.
@@ -36,6 +36,8 @@ var _Memory: TSOS.Memory;
 var _PCB: TSOS.Pcb;
 var _MMU: TSOS.Mmu;
 var _Disk: TSOS.Disk;
+
+var _DefaultMemorySize = 0x200;
 
 // Process states
 const STATE_EXECUTING    = 0x1;

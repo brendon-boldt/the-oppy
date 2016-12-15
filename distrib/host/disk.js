@@ -6,7 +6,7 @@ var TSOS;
         constructor() {
             let mbr = sessionStorage.getItem("0:0:0");
             if (!mbr) {
-                this.formatDisk();
+                this.formatDisk(false);
             }
         }
         /*
@@ -43,14 +43,14 @@ var TSOS;
                 * Disk.blockCount
                 * Disk.blockSize;
         }
-        formatDisk() {
+        formatDisk(update = true) {
             for (let t = 0; t < Disk.trackCount; ++t) {
                 for (let s = 0; s < Disk.sectorCount; ++s) {
                     for (let b = 0; b < Disk.blockCount; ++b) {
                         //sessionStorage.setItem(t+':'+s+':'+b,
                         //new Array(this.getDiskSize+1).join(Disk.nullChar));
                         //console.log("writing: " + [t,s,b]);
-                        this.writeDisk([t, s, b], "", true);
+                        this.writeDisk([t, s, b], "", update);
                     }
                 }
             }
@@ -85,6 +85,7 @@ var TSOS;
                         .join(Disk.nullChar);
                 }
                 let str = tsb[0] + ':' + tsb[1] + ':' + tsb[2];
+                //alert("d : " + data.split(""));
                 sessionStorage.setItem(str, data);
                 //this.bytes = this.bytes.slice(0, addr)
                 //+ data
@@ -111,7 +112,9 @@ var TSOS;
                 tsb[2] < Disk.blockCount) {
                 let addr = Disk.getBlockAddr(tsb);
                 //return this.bytes.slice(addr, addr+Disk.blockSize);
-                return sessionStorage.getItem(tsb[0] + ':' + tsb[1] + ':' + tsb[2]);
+                let str = sessionStorage.getItem(tsb[0] + ':' + tsb[1] + ':' + tsb[2]);
+                //console.log(str.length);
+                return str;
             }
             else {
                 // TODO Add error on incorrect TSB

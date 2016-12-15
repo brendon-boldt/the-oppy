@@ -53,7 +53,7 @@ export class Disk {
     constructor() {
         let mbr = sessionStorage.getItem("0:0:0");
         if (!mbr) {
-            this.formatDisk();
+            this.formatDisk(false);
         }
     }
 
@@ -65,14 +65,14 @@ export class Disk {
     }
 
 
-    public formatDisk(): void {
+    public formatDisk(update: boolean = true): void {
         for (let t = 0; t < Disk.trackCount; ++t) {
             for (let s = 0; s < Disk.sectorCount; ++s) {
                 for (let b = 0; b < Disk.blockCount; ++b) {
                     //sessionStorage.setItem(t+':'+s+':'+b,
                             //new Array(this.getDiskSize+1).join(Disk.nullChar));
                     //console.log("writing: " + [t,s,b]);
-                    this.writeDisk([t,s,b], "", true);
+                    this.writeDisk([t,s,b], "", update);
                 }
             }
         }
@@ -109,6 +109,7 @@ export class Disk {
                         .join(Disk.nullChar);
             }
             let str = tsb[0]+':'+tsb[1]+':'+tsb[2];
+            //alert("d : " + data.split(""));
             sessionStorage.setItem(str, data);
             //this.bytes = this.bytes.slice(0, addr)
                     //+ data
@@ -137,7 +138,9 @@ export class Disk {
                 tsb[2] < Disk.blockCount) {
             let addr = Disk.getBlockAddr(tsb);
             //return this.bytes.slice(addr, addr+Disk.blockSize);
-            return sessionStorage.getItem(tsb[0]+':'+tsb[1]+':'+tsb[2]);
+            let str = sessionStorage.getItem(tsb[0]+':'+tsb[1]+':'+tsb[2]);
+            //console.log(str.length);
+            return str;
         } else {
             // TODO Add error on incorrect TSB
             return undefined;

@@ -4,10 +4,9 @@
 module TSOS {
 export class Memory { 
 
-    public static defaultMemorySize = 0x300;
 
     constructor(
-        private bytes: number[] = Array(Memory.defaultMemorySize)
+        private bytes: number[] = Array(_DefaultMemorySize)
     ) {
         // I guess we should initialize the memory to zeros
         for (let i = 0; i < this.bytes.length; i++) {
@@ -49,8 +48,9 @@ export class Memory {
      */
     public getBytes(addr: number, size: number): number[] {
        if (this.checkAddr(addr) && this.checkAddr(addr+size-1)) {
-            return this.bytes.slice(addr, size);
+            return this.bytes.slice(addr, addr + size);
        } else {
+            console.log("ERROR");
             alert('Memory address outside of physical memory');
             return [];
        }

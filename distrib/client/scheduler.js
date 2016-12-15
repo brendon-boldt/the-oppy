@@ -46,6 +46,18 @@ var TSOS;
             this.rrCounter = this.rrCounter % procs.length;
             return procs[this.rrCounter];
         }
+        getNextRRSwap(procs) {
+            let ct = undefined;
+            let len = procs.length;
+            for (let i = 0; i < len; ++i) {
+                let tempCt = procs[(this.rrCounter + len - 1 - i) % len];
+                if (tempCt.inMemory) {
+                    ct = tempCt;
+                    break;
+                }
+            }
+            return ct;
+        }
         roundRobin() {
             // Since process states are represented with separate bits,
             // you can query multiple process states using  bitwise operators.
@@ -55,7 +67,7 @@ var TSOS;
                 if (this.burstCounter >= this.quantum) {
                     this.burstCounter = 0;
                     let ct = this.getNextRRProcess(procs);
-                    console.log("Switching: " + ct.pid);
+                    //console.log("Switching: " + ct.pid);
                     _Kernel.krnTrace("Round Robin: switching to PID " + ct.pid);
                     _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CT_SWITCH_IRQ, { pid: ct.pid }));
                 }
@@ -68,7 +80,7 @@ var TSOS;
                     if (!executing) {
                         this.burstCounter = 0;
                         let ct = this.getNextRRProcess(procs);
-                        console.log("Switching: " + ct.pid);
+                        //console.log("Switching: " + ct.pid);
                         _Kernel.krnTrace("Round Robin: switching to PID " + ct.pid);
                         _KernelInterruptQueue.enqueue(new TSOS.Interrupt(CT_SWITCH_IRQ, { pid: ct.pid }));
                     }
@@ -84,6 +96,26 @@ var TSOS;
                 // automatically context switches in.
                 this.burstCounter = 0xffff;
             }
+        }
+        getNextSwapContext() {
+            let ct = undefined;
+            switch (this.mode) {
+                case MODE_ROUND_ROBIN:
+                    ct = this.getNextRRSwap(_PCB.processes);
+                    break;
+                case MODE_FCFS:
+                default:
+                    for (let i = 0; i < _PCB.processes.length; ++i) {
+                        if (_PCB.processes[i].inMemory) {
+                            ct = _PCB.processes[i];
+                            break;
+                        }
+                    }
+            }
+            if (ct == undefined) {
+                console.log("Undefined segment");
+            }
+            return ct;
         }
         /** Update the run time and wait time of all of the processes
          *  in the ready queue.
