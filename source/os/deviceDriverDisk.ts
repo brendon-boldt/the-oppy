@@ -138,6 +138,20 @@ module TSOS {
             return 0;
         }
 
+        public getFilenames(): string[] {
+            let DDD = DeviceDriverDisk;
+            let filenames: string[] = [];
+            for (let s = 0; s < Disk.sectorCount; ++s) {
+                for (let b = 1; b < Disk.sectorCount; ++b) {
+                    let bytes = _Disk.readDisk([0,s,b]);
+                    let name = DDD.trimFilename(bytes.slice(3));
+                    if (name.length != 0)
+                        filenames.push(name);
+                }
+            }
+            return filenames;
+        }
+
         public createFile(filename: string): number {
             // Check if the filename exists already
             let ret = 1;

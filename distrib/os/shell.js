@@ -248,6 +248,11 @@ var TSOS;
             return true;
         }
         shellLs(args) {
+            let names = _krnDiskDriver.getFilenames();
+            for (let name of names) {
+                _StdOut.putText(name);
+                _StdOut.advanceLine();
+            }
         }
         shellCreate(args) {
             // TODO Check name validity

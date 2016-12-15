@@ -364,7 +364,11 @@ module TSOS {
         }
 
         public shellLs(args): void {
-
+            let names = _krnDiskDriver.getFilenames();
+            for (let name of names) {
+                _StdOut.putText(name);
+                _StdOut.advanceLine();
+            }
         }
 
         public shellCreate(args): void {

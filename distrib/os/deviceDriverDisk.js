@@ -122,6 +122,19 @@ var TSOS;
             _Disk.writeDisk(blockTSB, "");
             return 0;
         }
+        getFilenames() {
+            let DDD = DeviceDriverDisk;
+            let filenames = [];
+            for (let s = 0; s < TSOS.Disk.sectorCount; ++s) {
+                for (let b = 1; b < TSOS.Disk.sectorCount; ++b) {
+                    let bytes = _Disk.readDisk([0, s, b]);
+                    let name = DDD.trimFilename(bytes.slice(3));
+                    if (name.length != 0)
+                        filenames.push(name);
+                }
+            }
+            return filenames;
+        }
         createFile(filename) {
             // Check if the filename exists already
             let ret = 1;
