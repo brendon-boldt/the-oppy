@@ -30,25 +30,8 @@ export class Disk {
      *           ... Data
      */
 
-    public static getBlockAddr(tsb: number[]): number {
-        if (tsb.length < 3)
-            return undefined;
-        return tsb[2] * Disk.blockSize
-            + tsb[1] * Disk.blockCount * Disk.blockSize
-            + tsb[0] * Disk.sectorCount * Disk.blockCount * Disk.blockSize;
-    }
 
-    public static getTSB(addr: number): number[] {
-        return [Math.floor(addr/this.trackSize),
-            Math.floor((addr % this.trackSize)/this.sectorSize),
-            Math.floor((addr % this.sectorSize)/Disk.blockSize)];
-    }
-
-    // Should bytes be a string or array?
-    //private bytes: string;    
     public static nullChar: string = String.fromCharCode(0);
-
-    //private diskName: string = "disk";
 
     constructor() {
         let mbr = sessionStorage.getItem("0:0:0");
@@ -65,41 +48,21 @@ export class Disk {
     }
 
 
+    /** Write 0's to the disk.
+     */
     public formatDisk(update: boolean = true): void {
         for (let t = 0; t < Disk.trackCount; ++t) {
             for (let s = 0; s < Disk.sectorCount; ++s) {
                 for (let b = 0; b < Disk.blockCount; ++b) {
-                    //sessionStorage.setItem(t+':'+s+':'+b,
-                            //new Array(this.getDiskSize+1).join(Disk.nullChar));
-                    //console.log("writing: " + [t,s,b]);
                     this.writeDisk([t,s,b], "", update);
                 }
             }
         }
     }
 
-    // TODO Move this to disk driver
-    //public getNextBlockAddr(blockAddr: number): number {
-    public getNextBlockAddr(tsb: number[]): number[] {
-        let addr: number[];
-        let bytes = this.readDisk(tsb);
-        if (bytes[0] == '2') {
-            addr = undefined;
-        } else if (bytes[0] == '1') {
-            addr = [
-                parseInt(bytes[1]),
-                parseInt(bytes[2]),
-                parseInt(bytes[3])];
-        }
-        return addr;
-    }
-
-    /*
-    public getImage(): string {
-        return this.bytes;
-    }
-    */
-
+    /** Write to the disk the specified string.
+     * Update the display if specified.
+     */
     public writeDisk(tsb: number[], data: string, update?: boolean): number {
         if (tsb[0] < Disk.trackCount &&
                 tsb[1] < Disk.sectorCount &&
@@ -109,11 +72,7 @@ export class Disk {
                         .join(Disk.nullChar);
             }
             let str = tsb[0]+':'+tsb[1]+':'+tsb[2];
-            //alert("d : " + data.split(""));
             sessionStorage.setItem(str, data);
-            //this.bytes = this.bytes.slice(0, addr)
-                    //+ data
-                    //+ this.bytes.slice(addr + data.length);
             if (update !== false)
                 Devices.hostUpdateDiskDisplay([str]);
             return 0;
@@ -124,6 +83,8 @@ export class Disk {
 
     }
 
+    /** Read the disk using a string address.
+     */
     public string_readDisk(str: string): string {
         let arr = str.split(':'); 
         return this.readDisk([
@@ -132,14 +93,13 @@ export class Disk {
                 parseInt(arr[2])]);
     }
 
+    /** Read the disk at the specified track, sector, and block.
+     */
     public readDisk(tsb: number[]): string {
         if (tsb[0] < Disk.trackCount &&
                 tsb[1] < Disk.sectorCount &&
                 tsb[2] < Disk.blockCount) {
-            let addr = Disk.getBlockAddr(tsb);
-            //return this.bytes.slice(addr, addr+Disk.blockSize);
             let str = sessionStorage.getItem(tsb[0]+':'+tsb[1]+':'+tsb[2]);
-            //console.log(str.length);
             return str;
         } else {
             // TODO Add error on incorrect TSB

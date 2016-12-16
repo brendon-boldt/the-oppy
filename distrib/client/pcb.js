@@ -102,8 +102,6 @@ var TSOS;
                 return this.addProcess(ct);
             }
             else {
-                //_StdOut.putText("Loading failed: no available segments.");
-                //_StdOut.advanceLine();
                 _Kernel.krnTrace("No available segments, swapping new process.");
                 this.addProcess(ct);
                 ct.inMemory = false;
@@ -131,7 +129,6 @@ var TSOS;
          *  The scheduler will handle everything from here.
          */
         runProcess(pid) {
-            //console.log("Running: " + pid);
             let ct = this.getProcessByPid(pid);
             ct.state = STATE_WAITING;
         }
@@ -152,7 +149,6 @@ var TSOS;
             let pid = params.pid;
             let ct = this.getProcessByPid(params.pid);
             if (!ct) {
-                //_Kernel.krnTrapError("Attempted to context switch to non-existent process.");
                 _Kernel.krnTrace("Could not context switch to PID " + pid);
             }
             else {
@@ -168,7 +164,6 @@ var TSOS;
             let pid = params.pid;
             let newline = params.newline;
             let ct = this.getProcessByPid(pid);
-            //console.log("Terminating: " + pid);            
             if (ct) {
                 // Clear the segment
                 if (ct.inMemory) {

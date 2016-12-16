@@ -116,8 +116,6 @@ module TSOS {
                 ct.inMemory = true;
                 return this.addProcess(ct);
             } else {
-                //_StdOut.putText("Loading failed: no available segments.");
-                //_StdOut.advanceLine();
                 _Kernel.krnTrace("No available segments, swapping new process.");
                 this.addProcess(ct);
                 ct.inMemory = false;
@@ -145,7 +143,6 @@ module TSOS {
          *  The scheduler will handle everything from here.
          */
         public runProcess(pid): void {
-            //console.log("Running: " + pid);
             let ct = this.getProcessByPid(pid);
             ct.state = STATE_WAITING;
         }
@@ -169,7 +166,6 @@ module TSOS {
             let pid = params.pid;
             let ct = this.getProcessByPid(params.pid);
             if (!ct) {
-                //_Kernel.krnTrapError("Attempted to context switch to non-existent process.");
                 _Kernel.krnTrace("Could not context switch to PID " + pid);
             } else {
                 this.pauseExecution();
@@ -186,7 +182,6 @@ module TSOS {
             let newline = params.newline;
             let ct: Context = this.getProcessByPid(pid);
 
-            //console.log("Terminating: " + pid);            
             if (ct) { // If the proper context was found
                 // Clear the segment
                 if (ct.inMemory) {
@@ -228,7 +223,6 @@ module TSOS {
                 _StdOut.advanceLine();
                 _OsShell.putPrompt();
             } else {
-                //this.runProcess(waitList[0].pid);
             }
         }
 

@@ -200,6 +200,8 @@ module TSOS {
             }
 
 
+            // Determine if the process to be executed is in memory and
+            // swap it if needed.
             let ret = _krnDiskDriver.swapIfNeeded(ct);
             if (ret == 3) {
                 console.log(new Error().stack);
