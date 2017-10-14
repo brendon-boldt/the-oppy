@@ -522,7 +522,7 @@ module TSOS {
             } else {
                 // TODO make error more specific
                 _StdOut.putText("Process " + pid + " cannot be run.");
-                this.putPrompt();
+                _StdOut.advanceLine();
             }
         }
 

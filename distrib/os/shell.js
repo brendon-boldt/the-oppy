@@ -406,7 +406,7 @@ var TSOS;
             else {
                 // TODO make error more specific
                 _StdOut.putText("Process " + pid + " cannot be run.");
-                this.putPrompt();
+                _StdOut.advanceLine();
             }
         }
         // Check if something is a printable character
